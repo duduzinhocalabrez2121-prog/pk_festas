@@ -1,0 +1,2871 @@
+<!DOCTYPE html>
+<html lang="pt-BR" translate="no" class="notranslate">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Language" content="pt-BR" />
+  <meta name="google" content="notranslate" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#064E3B" />
+  <title>PK Festas & Casa — Gestão Financeira (Firebase Cloud)</title>
+
+  <!-- Fonte Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    html, body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #0F172A;
+      color: #0F172A;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .pb-safe-content {
+      padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(24px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .animate-modal {
+      animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex justify-center bg-slate-900">
+
+  <!-- Container Mobile-First -->
+  <div class="w-full max-w-md min-h-screen bg-slate-50 shadow-2xl relative flex flex-col overflow-x-hidden">
+
+    <!-- HEADER FIXO ESCURO/ESMERALDA COM STATUS FIREBASE & SALDO -->
+    <header class="sticky top-0 z-30 bg-slate-900 text-white px-4 pt-3 pb-3.5 shadow-lg border-b border-emerald-500/20 space-y-2.5">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-900/50 shrink-0">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z" />
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <h1 class="text-sm font-extrabold tracking-tight text-white truncate">PK Festas & Casa</h1>
+            <button type="button" data-action="open-firebase-modal" id="firebase-status-badge" class="mt-0.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-emerald-300 border border-emerald-500/30 hover:bg-slate-700 transition cursor-pointer">
+              <span id="firebase-status-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              <span id="firebase-status-text">🔄 Conectando pk-festas...</span>
+            </button>
+          </div>
+        </div>
+
+        <button type="button" data-action="open-event-modal" class="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-extrabold text-xs px-3 py-2 rounded-xl shadow-sm transition flex items-center gap-1 shrink-0 cursor-pointer">
+          <span>+ Festa</span>
+        </button>
+      </div>
+
+      <!-- Barra de Saldo em Conta & Seletor Global de Período -->
+      <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl px-3 py-2 flex items-center justify-between gap-2">
+        <div>
+          <span class="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Saldo em Conta</span>
+          <span id="header-saldo-conta" class="text-sm font-extrabold text-emerald-400 tabular-nums">R$ 0,00</span>
+        </div>
+
+        <div class="flex items-center gap-1 bg-slate-900/90 border border-slate-700 rounded-xl px-1.5 py-1">
+          <button type="button" data-action="global-prev-month" class="p-1 text-slate-300 hover:text-white rounded-lg cursor-pointer" title="Mês anterior">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button type="button" data-action="global-toggle-all-months" id="header-period-label" class="text-[11px] font-extrabold text-white px-1.5 capitalize whitespace-nowrap cursor-pointer">
+            Novembro 2026
+          </button>
+          <button type="button" data-action="global-next-month" class="p-1 text-slate-300 hover:text-white rounded-lg cursor-pointer" title="Próximo mês">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="flex-1 px-4 pt-4 pb-safe-content space-y-4">
+
+      <!-- ========================================================= -->
+      <!-- ABA 1: VISÃO GERAL (RESUMO)                               -->
+      <!-- ========================================================= -->
+      <section id="tab-resumo" class="space-y-4">
+
+        <!-- Card Principal: Saldo Real em Conta + Ações Rápidas -->
+        <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 text-white rounded-3xl p-5 shadow-xl relative overflow-hidden border border-emerald-500/20">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-300">Saldo Real em Conta Única</span>
+            <span class="text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2.5 py-0.5 rounded-full">pk-festas Cloud</span>
+          </div>
+
+          <div id="resumo-saldo-geral" class="text-3xl font-extrabold tracking-tight tabular-nums mt-1.5">
+            R$ 0,00
+          </div>
+          <p class="text-[11px] text-slate-300 mt-0.5">Saldo Inicial + Entradas Totais − Saídas Totais no Caixa</p>
+
+          <!-- Botões de Ação Rápida no Card Principal -->
+          <div class="grid grid-cols-2 gap-2.5 mt-4 pt-3.5 border-t border-white/10">
+            <button type="button" data-action="open-tx-modal" class="bg-white/10 hover:bg-white/20 active:scale-95 text-white font-bold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>+ Entrada / Saída</span>
+            </button>
+            <button type="button" data-action="open-event-modal" class="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-extrabold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-md transition cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span>+ Nova Reserva</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Seletor de Mês para os Indicadores -->
+        <div class="flex items-center justify-between bg-white border border-slate-200 rounded-2xl p-2 shadow-xs">
+          <button type="button" data-action="global-prev-month" class="p-2 rounded-xl text-slate-600 hover:bg-slate-100 active:scale-95 transition cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div class="text-center">
+            <span class="text-[10px] font-semibold text-slate-400 uppercase block leading-none">Período Analisado</span>
+            <button type="button" data-action="global-toggle-all-months" class="mt-0.5 inline-flex items-center gap-1.5 cursor-pointer">
+              <span id="resumo-month-label" class="text-sm font-extrabold text-slate-800 capitalize">Novembro 2026</span>
+              <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-md">Alternar Todos</span>
+            </button>
+          </div>
+          <button type="button" data-action="global-next-month" class="p-2 rounded-xl text-slate-600 hover:bg-slate-100 active:scale-95 transition cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Card Centro de Custo 1: Área de Festa (PK Festas) -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                🎉
+              </div>
+              <div>
+                <h2 class="text-sm font-extrabold text-slate-900">Área de Festa (PK Festas)</h2>
+                <p class="text-[11px] text-slate-500">Receitas, despesas e saldos a receber</p>
+              </div>
+            </div>
+            <span id="resumo-festa-lucro" class="text-xs font-extrabold px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 tabular-nums">
+              Lucro: R$ 0,00
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5">
+              <span class="text-slate-500 text-[11px] block">Receitas Recebidas</span>
+              <span id="resumo-festa-receitas" class="text-sm font-extrabold text-emerald-600 tabular-nums mt-0.5 block">R$ 0,00</span>
+            </div>
+            <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5">
+              <span class="text-slate-500 text-[11px] block">Despesas do Espaço</span>
+              <span id="resumo-festa-despesas" class="text-sm font-extrabold text-rose-600 tabular-nums mt-0.5 block">R$ 0,00</span>
+            </div>
+          </div>
+
+          <div class="bg-amber-50 border border-amber-200/80 rounded-xl px-3.5 py-2.5 flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-amber-950 block">Total a Receber (Festas Agendadas)</span>
+              <span class="text-[10px] text-amber-700">Soma dos saldos restantes na agenda</span>
+            </div>
+            <span id="resumo-festa-areceber" class="text-base font-extrabold text-amber-700 tabular-nums">R$ 0,00</span>
+          </div>
+        </div>
+
+        <!-- Card Centro de Custo 2: Casa Alugada -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold">
+                🏠
+              </div>
+              <div>
+                <h2 class="text-sm font-extrabold text-slate-900">Casa Alugada</h2>
+                <p class="text-[11px] text-slate-500">Aluguéis, gastos e reembolsos</p>
+              </div>
+            </div>
+            <span id="resumo-casa-lucro" class="text-xs font-extrabold px-2.5 py-1 rounded-xl bg-teal-50 text-teal-700 tabular-nums">
+              Lucro: R$ 0,00
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5">
+              <span class="text-slate-500 text-[11px] block">Aluguéis Recebidos</span>
+              <span id="resumo-casa-receitas" class="text-sm font-extrabold text-emerald-600 tabular-nums mt-0.5 block">R$ 0,00</span>
+            </div>
+            <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5">
+              <span class="text-slate-500 text-[11px] block">Despesas da Casa</span>
+              <span id="resumo-casa-despesas" class="text-sm font-extrabold text-rose-600 tabular-nums mt-0.5 block">R$ 0,00</span>
+            </div>
+          </div>
+
+          <div class="bg-teal-50 border border-teal-200/80 rounded-xl px-3.5 py-2.5 flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-teal-950 block">Reembolsáveis Pendentes (Inquilino)</span>
+              <span class="text-[10px] text-teal-700">Gastos da casa a somar no próximo aluguel</span>
+            </div>
+            <span id="resumo-casa-reembolsavel" class="text-base font-extrabold text-teal-700 tabular-nums">R$ 0,00</span>
+          </div>
+        </div>
+
+        <!-- Lista de Próximas Festas & Saldos Pendentes -->
+        <div class="space-y-2.5 pt-1">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-extrabold text-slate-900">Próximas Festas & Saldos Pendentes</h3>
+            <button type="button" data-action="switch-tab" data-tab="agenda" class="text-xs font-bold text-emerald-700 hover:underline cursor-pointer">
+              Ver agenda completa →
+            </button>
+          </div>
+          <div id="resumo-upcoming-list" class="space-y-3">
+            <!-- Renderizado via JS -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- ABA 2: AGENDA DE FESTAS (CRUD COMPLETO + FIREBASE)        -->
+      <!-- ========================================================= -->
+      <section id="tab-agenda" class="hidden space-y-4">
+
+        <!-- Topo da Agenda + Botão Destaque -->
+        <div class="bg-slate-900 text-white rounded-2xl p-4 flex items-center justify-between gap-2 shadow-md">
+          <div>
+            <h2 class="text-base font-extrabold">Agenda de Festas</h2>
+            <p class="text-xs text-slate-300">Controle datas, sinais pagos e quitações</p>
+          </div>
+          <button type="button" data-action="open-event-modal" class="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-extrabold text-xs px-3.5 py-2.5 rounded-xl shadow-sm transition shrink-0 cursor-pointer">
+            + Nova Reserva de Festa
+          </button>
+        </div>
+
+        <!-- Filtros da Agenda -->
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1" id="agenda-filters">
+          <button type="button" data-action="filter-agenda" data-filter="todas" class="px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer">
+            Todas
+          </button>
+          <button type="button" data-action="filter-agenda" data-filter="abertas" class="px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer">
+            Sinal Pago / Pendente
+          </button>
+          <button type="button" data-action="filter-agenda" data-filter="quitado" class="px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer">
+            Quitadas
+          </button>
+        </div>
+
+        <!-- Lista de Cards de Festas -->
+        <div id="agenda-events-list" class="space-y-3">
+          <!-- Renderizado via JS -->
+        </div>
+
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- ABA 3: FLUXO DE CAIXA (CONTA ÚNICA + FIREBASE)            -->
+      <!-- ========================================================= -->
+      <section id="tab-caixa" class="hidden space-y-4">
+
+        <!-- Topo do Caixa -->
+        <div class="bg-slate-900 text-white rounded-2xl p-4 flex items-center justify-between gap-2 shadow-md">
+          <div>
+            <h2 class="text-base font-extrabold">Fluxo de Caixa</h2>
+            <p class="text-xs text-slate-300">Movimentações da conta bancária única</p>
+          </div>
+          <button type="button" data-action="open-tx-modal" class="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-extrabold text-xs px-3.5 py-2.5 rounded-xl shadow-sm transition shrink-0 cursor-pointer">
+            + Nova Entrada / Saída
+          </button>
+        </div>
+
+        <!-- Filtros por Centro de Custo e Tipo -->
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Centro de Custo</label>
+            <select id="caixa-filter-cc" class="w-full px-3 py-2 text-xs font-bold bg-white border border-slate-200 rounded-xl text-slate-800">
+              <option value="todos">Todos</option>
+              <option value="festa">🎉 Área de Festa</option>
+              <option value="casa">🏠 Casa Alugada</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tipo de Movimento</label>
+            <select id="caixa-filter-type" class="w-full px-3 py-2 text-xs font-bold bg-white border border-slate-200 rounded-xl text-slate-800">
+              <option value="todos">Todos</option>
+              <option value="entrada">Entradas (+)</option>
+              <option value="saida">Saídas (−)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Resumo do Filtro Atual -->
+        <div class="grid grid-cols-3 gap-2 bg-white border border-slate-200 rounded-2xl p-3 shadow-xs text-center">
+          <div>
+            <span class="text-[10px] font-semibold text-slate-500 block">Entradas</span>
+            <span id="caixa-sum-in" class="text-xs font-extrabold text-emerald-600 tabular-nums">R$ 0,00</span>
+          </div>
+          <div class="border-x border-slate-100 px-1">
+            <span class="text-[10px] font-semibold text-slate-500 block">Saídas</span>
+            <span id="caixa-sum-out" class="text-xs font-extrabold text-rose-600 tabular-nums">R$ 0,00</span>
+          </div>
+          <div>
+            <span class="text-[10px] font-semibold text-slate-500 block">Saldo Período</span>
+            <span id="caixa-sum-net" class="text-xs font-extrabold text-slate-900 tabular-nums">R$ 0,00</span>
+          </div>
+        </div>
+
+        <!-- Lista de Lançamentos -->
+        <div id="caixa-tx-list" class="space-y-2.5">
+          <!-- Renderizado via JS -->
+        </div>
+
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- ABA 4: CASA ALUGADA & FIREBASE CLOUD                      -->
+      <!-- ========================================================= -->
+      <section id="tab-config" class="hidden space-y-5">
+
+        <!-- Painel do Contrato da Casa Alugada -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center font-bold">
+                🏠
+              </div>
+              <div>
+                <h2 class="text-sm font-extrabold text-slate-900">Contrato da Casa Alugada</h2>
+                <p class="text-[11px] text-slate-500">Aluguel mensal, vencimento e reembolsos</p>
+              </div>
+            </div>
+          </div>
+
+          <form id="house-form" class="space-y-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Nome do Inquilino</label>
+              <input id="house-tenant-name" type="text" placeholder="Ex: Carlos Eduardo Mendes" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">WhatsApp do Inquilino</label>
+                <input id="house-tenant-phone" type="tel" placeholder="(27) 99999-9999" class="phone-mask w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Dia do Vencimento</label>
+                <input id="house-due-day" type="text" inputmode="numeric" placeholder="10" class="w-full px-3.5 py-2.5 text-sm font-bold bg-slate-50 border border-slate-200 rounded-xl tabular-nums focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Aluguel Mensal (R$)</label>
+                <input id="house-rent-value" type="text" inputmode="decimal" placeholder="1850,00" class="w-full px-3.5 py-2.5 text-sm font-extrabold bg-slate-50 border border-slate-200 rounded-xl tabular-nums focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Saldo Inicial Conta (R$)</label>
+                <input id="house-initial-balance" type="text" inputmode="decimal" placeholder="0,00" class="w-full px-3.5 py-2.5 text-sm font-extrabold bg-slate-50 border border-slate-200 rounded-xl tabular-nums focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Observações do Contrato</label>
+              <input id="house-notes" type="text" placeholder="Ex: Reajuste anual IGPM, caução pago..." class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white" />
+            </div>
+
+            <button type="submit" data-action="save-house-contract" class="w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold text-xs py-3 px-4 rounded-xl transition cursor-pointer">
+              💾 Salvar Configuração no Firebase
+            </button>
+          </form>
+
+          <!-- Despesas Reembolsáveis Pendentes -->
+          <div class="pt-3 border-t border-slate-100 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wide">Despesas Reembolsáveis Pendentes</h3>
+              <button type="button" data-action="open-reimbursable-tx-modal" class="text-[11px] font-bold text-emerald-700 hover:underline cursor-pointer">
+                + Adicionar gasto reembolsável
+              </button>
+            </div>
+            <div id="house-reimbursable-list" class="space-y-2">
+              <!-- Renderizado via JS -->
+            </div>
+          </div>
+
+          <!-- Ações Rápidas de Aluguel -->
+          <div class="grid grid-cols-1 gap-2.5 pt-2 border-t border-slate-100">
+            <button type="button" data-action="open-receive-rent-modal" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white font-extrabold text-xs py-3.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 cursor-pointer">
+              <span>🏠 Lançar Aluguel do Mês no Caixa</span>
+            </button>
+            <button type="button" data-action="whatsapp-rent-billing" class="w-full bg-emerald-50 hover:bg-emerald-100 active:scale-98 text-emerald-900 border border-emerald-200 font-extrabold text-xs py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 cursor-pointer">
+              <span>💬 Enviar Cobrança do Aluguel no WhatsApp</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Painel Firebase Cloud Sync (pk-festas) -->
+        <div class="bg-slate-900 text-white rounded-2xl p-4 shadow-md space-y-3.5 border border-emerald-500/30">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 block">Banco de Dados Integrado</span>
+              <h3 class="text-sm font-extrabold">Firebase Cloud Firestore • pk-festas</h3>
+            </div>
+            <button type="button" data-action="open-firebase-modal" class="text-xs font-bold bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-xl transition cursor-pointer">
+              Diagnóstico
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs bg-slate-800/90 rounded-xl p-3 border border-slate-700">
+            <div>
+              <span class="text-[10px] text-slate-400 block">Status da Conexão</span>
+              <span id="config-fb-status" class="font-extrabold text-emerald-400">Verificando...</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 block">Última Sincronização</span>
+              <span id="config-fb-last-sync" class="font-bold text-slate-200">--:--:--</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" data-action="force-cloud-sync" class="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-extrabold text-xs py-3 px-3 rounded-xl transition cursor-pointer">
+              ☁️ Sincronizar Tudo Agora
+            </button>
+            <button type="button" data-action="export-json" class="bg-white/10 hover:bg-white/20 active:scale-95 text-white font-bold text-xs py-3 px-3 rounded-xl transition cursor-pointer">
+              📥 Exportar Backup JSON
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" data-action="restore-examples" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/30 font-bold text-xs py-2.5 px-3 rounded-xl transition cursor-pointer">
+              🔄 Restaurar Exemplos
+            </button>
+            <button type="button" data-action="clear-all-data" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-400/30 font-bold text-xs py-2.5 px-3 rounded-xl transition cursor-pointer">
+              🧹 Limpar Todos os Dados
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- ========================================================= -->
+    <!-- BARRA DE NAVEGAÇÃO INFERIOR (4 ABAS)                      -->
+    <!-- ========================================================= -->
+    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-30 bg-slate-900 text-white border-t border-slate-800">
+      <div class="grid grid-cols-4 h-16">
+        <button type="button" data-action="switch-tab" data-tab="resumo" class="nav-tab-btn flex flex-col items-center justify-center gap-1 transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+          </svg>
+          <span class="text-[11px] font-bold">Visão Geral</span>
+        </button>
+
+        <button type="button" data-action="switch-tab" data-tab="agenda" class="nav-tab-btn flex flex-col items-center justify-center gap-1 transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span class="text-[11px] font-bold">Agenda</span>
+        </button>
+
+        <button type="button" data-action="switch-tab" data-tab="caixa" class="nav-tab-btn flex flex-col items-center justify-center gap-1 transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span class="text-[11px] font-bold">Caixa</span>
+        </button>
+
+        <button type="button" data-action="switch-tab" data-tab="config" class="nav-tab-btn flex flex-col items-center justify-center gap-1 transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+          <span class="text-[11px] font-bold">Casa & Cloud</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ========================================================= -->
+    <!-- MODAL 1: CRIAR / EDITAR FESTA (#event-form)               -->
+    <!-- ========================================================= -->
+    <div id="modal-event" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/70 backdrop-blur-xs p-0 sm:p-4">
+      <div class="w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-5 max-h-[92vh] overflow-y-auto shadow-2xl animate-modal space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 id="modal-event-title" class="text-base font-extrabold text-slate-900">Agendar Nova Festa</h3>
+          <button type="button" data-action="close-event-modal" class="p-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">
+            ✕
+          </button>
+        </div>
+
+        <form id="event-form" class="space-y-3.5">
+          <input type="hidden" id="ev-id" value="" />
+
+          <!-- Aviso de Choque de Data -->
+          <div id="ev-conflict-warning" class="hidden bg-amber-50 border border-amber-300 text-amber-900 rounded-xl p-3 text-xs">
+            ⚠️ <strong>Choque de Data:</strong> Já existe outra festa agendada neste dia (<span id="ev-conflict-name" class="font-bold"></span>).
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Data do Evento *</label>
+              <input id="ev-date" type="date" class="w-full px-3 py-2.5 text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Descrição / Tipo</label>
+              <input id="ev-type" type="text" placeholder="Ex: Aniversário, Casamento" class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Nome do Cliente *</label>
+              <input id="ev-client" type="text" placeholder="Ex: Mariana Souza" class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">WhatsApp</label>
+              <input id="ev-phone" type="tel" placeholder="(27) 99999-9999" class="phone-mask w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Valor Total (R$) *</label>
+              <input id="ev-total" type="text" inputmode="decimal" placeholder="1500,00" class="w-full px-3 py-2.5 text-sm font-extrabold bg-slate-50 border border-slate-200 rounded-xl tabular-nums focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Valor Já Pago / Sinal (R$)</label>
+              <input id="ev-paid" type="text" inputmode="decimal" placeholder="500,00" class="w-full px-3 py-2.5 text-sm font-extrabold text-emerald-700 bg-slate-50 border border-slate-200 rounded-xl tabular-nums focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+          </div>
+
+          <!-- Painel em Tempo Real: Saldo Restante e Status Automático -->
+          <div class="bg-slate-900 text-white rounded-2xl p-3.5 flex items-center justify-between">
+            <div>
+              <span class="text-[10px] uppercase tracking-wider text-slate-400 block">Saldo a Receber</span>
+              <span id="ev-preview-remaining" class="text-lg font-extrabold text-amber-400 tabular-nums">R$ 0,00</span>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] uppercase tracking-wider text-slate-400 block mb-1">Status Automático</span>
+              <span id="ev-preview-status" class="text-xs font-extrabold px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300">🔴 Aguardando Sinal</span>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Observações</label>
+            <input id="ev-notes" type="text" placeholder="Ex: Horário 9h às 20h, incluso freezer..." class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          </div>
+
+          <!-- Checkbox de Integração Automática com o Caixa -->
+          <label class="flex items-start gap-2.5 bg-emerald-50 border border-emerald-200 rounded-xl p-3 cursor-pointer">
+            <input id="ev-sync-cash" type="checkbox" checked class="w-4 h-4 mt-0.5 rounded text-emerald-600" />
+            <div class="text-xs">
+              <span class="font-bold text-emerald-950 block">Lançar entrada automaticamente no Fluxo de Caixa</span>
+              <span class="text-[11px] text-emerald-700">Sincroniza o sinal/pagamento recebido com o caixa da conta única.</span>
+            </div>
+          </label>
+
+          <div class="flex gap-2 pt-2">
+            <button type="button" data-action="close-event-modal" class="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer">
+              Cancelar
+            </button>
+            <button type="submit" data-action="save-event" class="w-2/3 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md cursor-pointer">
+              Salvar Reserva
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL 2: ABATER VALOR / QUITAR FESTA (#payment-form)      -->
+    <!-- ========================================================= -->
+    <div id="modal-pay-event" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/70 backdrop-blur-xs p-0 sm:p-4">
+      <div class="w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl animate-modal space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 class="text-base font-extrabold text-slate-900">Quitar ou Abater Valor da Festa</h3>
+          <button type="button" data-action="close-pay-event-modal" class="p-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">
+            ✕
+          </button>
+        </div>
+
+        <form id="payment-form" class="space-y-4">
+          <input type="hidden" id="pay-ev-id" value="" />
+
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-1.5 text-xs">
+            <div class="flex justify-between">
+              <span class="text-slate-500">Cliente:</span>
+              <span id="pay-ev-client" class="font-extrabold text-slate-900"></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500">Valor Total Combinado:</span>
+              <span id="pay-ev-total" class="font-bold text-slate-800 tabular-nums"></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500">Já Pago:</span>
+              <span id="pay-ev-paid" class="font-bold text-emerald-600 tabular-nums"></span>
+            </div>
+            <div class="flex justify-between pt-1.5 border-t border-slate-200">
+              <span class="font-bold text-slate-700">Saldo Restante:</span>
+              <span id="pay-ev-remaining" class="font-extrabold text-amber-700 text-sm tabular-nums"></span>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Valor Recebido Agora (R$) *</label>
+            <input id="pay-ev-amount" type="text" inputmode="decimal" placeholder="0,00" class="w-full px-3.5 py-3 text-base font-extrabold text-emerald-700 bg-slate-50 border border-slate-300 rounded-xl tabular-nums focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            <p class="text-[11px] text-slate-500 mt-1">Informe o valor total restante para quitar ou digite uma parcela parcial.</p>
+          </div>
+
+          <label class="flex items-start gap-2.5 bg-emerald-50 border border-emerald-200 rounded-xl p-3 cursor-pointer">
+            <input id="pay-ev-sync-cash" type="checkbox" checked class="w-4 h-4 mt-0.5 rounded text-emerald-600" />
+            <span class="text-xs font-bold text-emerald-950">Lançar entrada automaticamente no Fluxo de Caixa</span>
+          </label>
+
+          <div class="flex gap-2 pt-1">
+            <button type="button" data-action="close-pay-event-modal" class="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer">
+              Cancelar
+            </button>
+            <button type="submit" data-action="confirm-pay-event" class="w-2/3 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md cursor-pointer">
+              Confirmar Recebimento
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL 3: CRIAR / EDITAR LANÇAMENTO NO CAIXA (#tx-form)    -->
+    <!-- ========================================================= -->
+    <div id="modal-tx" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/70 backdrop-blur-xs p-0 sm:p-4">
+      <div class="w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-5 max-h-[92vh] overflow-y-auto shadow-2xl animate-modal space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 id="modal-tx-title" class="text-base font-extrabold text-slate-900">Novo Lançamento no Caixa</h3>
+          <button type="button" data-action="close-tx-modal" class="p-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">
+            ✕
+          </button>
+        </div>
+
+        <form id="tx-form" class="space-y-3.5">
+          <input type="hidden" id="tx-id" value="" />
+
+          <!-- Seletor Entrada vs Saída -->
+          <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-2xl">
+            <button type="button" id="btn-tx-entrada" data-action="set-tx-type" data-type="entrada" class="py-2.5 rounded-xl text-xs font-extrabold transition cursor-pointer">
+              + Entrada (Receita)
+            </button>
+            <button type="button" id="btn-tx-saida" data-action="set-tx-type" data-type="saida" class="py-2.5 rounded-xl text-xs font-extrabold transition cursor-pointer">
+              − Saída (Despesa)
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Centro de Custo *</label>
+              <select id="tx-cc" class="w-full px-3 py-2.5 text-sm font-bold bg-slate-50 border border-slate-200 rounded-xl">
+                <option value="festa">🎉 Área de Festa</option>
+                <option value="casa">🏠 Casa Alugada</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Categoria *</label>
+              <select id="tx-category" class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl">
+                <option value="Locação de Festa">Locação de Festa</option>
+                <option value="Sinal de Reserva">Sinal de Reserva</option>
+                <option value="Aluguel da Casa">Aluguel da Casa</option>
+                <option value="Limpeza/Piscina">Limpeza/Piscina</option>
+                <option value="Energia/Água">Energia/Água</option>
+                <option value="Manutenção/Obras">Manutenção/Obras</option>
+                <option value="IPTU/Taxas">IPTU/Taxas</option>
+                <option value="Outros">Outros</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Valor (R$) *</label>
+              <input id="tx-amount" type="text" inputmode="decimal" placeholder="250,00" class="w-full px-3 py-2.5 text-sm font-extrabold bg-slate-50 border border-slate-200 rounded-xl tabular-nums" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Data *</label>
+              <input id="tx-date" type="date" class="w-full px-3 py-2.5 text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Descrição *</label>
+            <input id="tx-desc" type="text" placeholder="Ex: Cloro piscina / Aluguel mês / Sinal festa" class="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl" />
+          </div>
+
+          <!-- Checkbox Reembolsável pelo Inquilino (Casa Alugada + Saída) -->
+          <label id="tx-reimb-box" class="hidden flex items-start gap-2.5 bg-teal-50 border border-teal-200 rounded-xl p-3 cursor-pointer">
+            <input id="tx-reimbursable" type="checkbox" class="w-4 h-4 mt-0.5 rounded text-teal-600" />
+            <div class="text-xs">
+              <span class="font-bold text-teal-950 block">Despesa reembolsável pelo inquilino (cobrar junto ao próximo aluguel)</span>
+              <span class="text-[11px] text-teal-700">Será somada automaticamente quando você clicar em Lançar Aluguel do Mês.</span>
+            </div>
+          </label>
+
+          <div class="flex gap-2 pt-2">
+            <button type="button" data-action="close-tx-modal" class="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer">
+              Cancelar
+            </button>
+            <button type="submit" data-action="save-tx" class="w-2/3 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs shadow-md cursor-pointer">
+              Salvar Lançamento
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL 4: RECEBER ALUGUEL DO MÊS (CASA ALUGADA)            -->
+    <!-- ========================================================= -->
+    <div id="modal-rent" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/70 backdrop-blur-xs p-0 sm:p-4">
+      <div class="w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl animate-modal space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 class="text-base font-extrabold text-slate-900">Lançar Aluguel do Mês no Caixa</h3>
+          <button type="button" data-action="close-rent-modal" class="p-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">
+            ✕
+          </button>
+        </div>
+
+        <div id="modal-rent-content" class="space-y-3">
+          <!-- Preenchido via JS -->
+        </div>
+
+        <div class="flex gap-2 pt-1">
+          <button type="button" data-action="close-rent-modal" class="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer">
+            Cancelar
+          </button>
+          <button type="button" data-action="confirm-receive-rent" class="w-2/3 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md cursor-pointer">
+            Confirmar e Lançar no Caixa
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL 5: DIAGNÓSTICO E REGRAS FIREBASE (pk-festas)        -->
+    <!-- ========================================================= -->
+    <div id="modal-firebase" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/75 backdrop-blur-xs p-0 sm:p-4">
+      <div class="w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-5 max-h-[92vh] overflow-y-auto shadow-2xl animate-modal space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-600 block">Cloud Firestore Realtime</span>
+            <h3 class="text-base font-extrabold text-slate-900">Diagnóstico Firebase • pk-festas</h3>
+          </div>
+          <button type="button" data-action="close-firebase-modal" class="p-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">
+            ✕
+          </button>
+        </div>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2 text-xs">
+          <div class="flex justify-between">
+            <span class="text-slate-500">Project ID:</span>
+            <span class="font-extrabold text-slate-900 font-mono">pk-festas</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Protocolo de Rede (Vercel):</span>
+            <span class="font-bold text-emerald-700">Auto Long-Polling Ativo</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Proteção Chrome Translate (`te_lib`):</span>
+            <span class="font-bold text-emerald-700">Blindado (`notranslate`)</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Status Firestore:</span>
+            <span id="diag-fb-status" class="font-extrabold text-emerald-600">Conectando...</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Festas Sincronizadas (`pk_events`):</span>
+            <span id="diag-fb-events-count" class="font-bold text-slate-900">0</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Lançamentos (`pk_transactions`):</span>
+            <span id="diag-fb-tx-count" class="font-bold text-slate-900">0</span>
+          </div>
+          <div id="diag-fb-error-box" class="hidden pt-2 border-t border-rose-200 text-rose-700 font-semibold"></div>
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold text-slate-800">Regras do Firestore (Firebase Console)</span>
+            <button type="button" data-action="copy-firestore-rules" class="text-[11px] font-bold text-emerald-700 hover:underline cursor-pointer">
+              📋 Copiar Regras
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-500 leading-relaxed">
+            Caso apareça "Permissão Pendente", acesse <strong>Firestore Database → Rules</strong> no console do projeto <code>pk-festas</code> e publique as regras abaixo:
+          </p>
+          <pre id="firestore-rules-code" class="bg-slate-900 text-emerald-300 text-[11px] p-3 rounded-xl overflow-x-auto font-mono leading-relaxed">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}</pre>
+        </div>
+
+        <div class="flex gap-2 pt-1">
+          <button type="button" data-action="close-firebase-modal" class="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer">
+            Fechar
+          </button>
+          <button type="button" data-action="force-cloud-sync" class="w-2/3 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md cursor-pointer">
+            ☁️ Forçar Sincronização na Nuvem
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL 6: CONFIRMAÇÃO DE EXCLUSÃO CUSTOMIZADO              -->
+    <!-- ========================================================= -->
+    <div id="modal-confirm" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-xs p-4">
+      <div class="w-full max-w-sm bg-white rounded-3xl p-5 shadow-2xl animate-modal space-y-4">
+        <div class="space-y-1.5">
+          <h3 id="confirm-title" class="text-base font-extrabold text-slate-900">Confirmar Exclusão</h3>
+          <p id="confirm-message" class="text-xs text-slate-600 leading-relaxed"></p>
+        </div>
+
+        <label id="confirm-extra-option-wrap" class="hidden flex items-start gap-2.5 bg-rose-50 border border-rose-200 rounded-xl p-3 cursor-pointer">
+          <input id="confirm-extra-checkbox" type="checkbox" checked class="w-4 h-4 mt-0.5 rounded text-rose-600" />
+          <span id="confirm-extra-label" class="text-xs font-bold text-rose-900">Excluir também os lançamentos financeiros vinculados no Fluxo de Caixa</span>
+        </label>
+
+        <div class="flex gap-2 pt-1">
+          <button type="button" data-action="close-confirm-modal" class="flex-1 py-3 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer">
+            Cancelar
+          </button>
+          <button type="button" id="confirm-yes-btn" data-action="execute-confirm" class="flex-1 py-3 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs shadow-md cursor-pointer">
+            Confirmar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTAINER DE TOASTS (FEEDBACK INSTANTÂNEO) -->
+    <div id="toast-box" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 w-full max-w-xs px-4 pointer-events-none space-y-2"></div>
+
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- FIREBASE SDK (v10.14.1 ES MODULE) + LÓGICA DO APLICATIVO  -->
+  <!-- ========================================================= -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import { getAnalytics, isSupported as isAnalyticsSupported } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js";
+    import {
+      initializeFirestore,
+      getFirestore,
+      collection,
+      doc,
+      setDoc,
+      deleteDoc,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    // Configuração exata do Firebase (Projeto: pk-festas)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDiY97u3YCbT8vHp7TAyO3HWciIqo9nwE0",
+      authDomain: "pk-festas.firebaseapp.com",
+      projectId: "pk-festas",
+      storageBucket: "pk-festas.firebasestorage.app",
+      messagingSenderId: "57101101637",
+      appId: "1:57101101637:web:4dca0f1e9977a921c3512c",
+      measurementId: "G-Z89NXT6BBP"
+    };
+
+    let app = null;
+    let db = null;
+    try {
+      app = initializeApp(firebaseConfig);
+
+      // Inicializa Firestore com AutoDetectLongPolling para evitar ERR_CONNECTION_TIMED_OUT em redes móveis/proxies na Vercel
+      try {
+        db = initializeFirestore(app, {
+          experimentalAutoDetectLongPolling: true
+        });
+      } catch (firestoreInitErr) {
+        db = getFirestore(app);
+      }
+
+      // Inicializa Analytics de forma assíncrona e silenciosa para não travar caso bloqueadores impeçam chamadas gen204
+      isAnalyticsSupported()
+        .then((supported) => {
+          if (supported) {
+            try {
+              getAnalytics(app);
+            } catch (_) {}
+          }
+        })
+        .catch(() => {});
+    } catch (initErr) {
+      console.error("Erro ao inicializar Firebase:", initErr);
+    }
+
+    const STORAGE_KEY = "pk_festas_cloud_v3_state";
+
+    // Estado da conexão Firebase
+    const cloudStatus = {
+      state: "connecting", // 'online' | 'syncing' | 'permission_error' | 'offline'
+      lastSync: null,
+      errorMessage: "",
+      eventsSeeded: false,
+      txSeeded: false,
+      houseSeeded: false
+    };
+
+    // Utilitários de Moeda e Data
+    window.parseMoney = function (val) {
+      if (typeof val === "number") return isNaN(val) ? 0 : val;
+      if (!val) return 0;
+      let str = String(val).trim().replace(/[^\d.,-]/g, "");
+      if (!str) return 0;
+      if (str.includes(",") && str.includes(".")) {
+        str = str.replace(/\./g, "").replace(",", ".");
+      } else if (str.includes(",")) {
+        str = str.replace(",", ".");
+      }
+      const num = parseFloat(str);
+      return isNaN(num) ? 0 : Math.round(num * 100) / 100;
+    };
+
+    const brlFormatter = new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
+
+    window.formatBRL = function (val) {
+      return brlFormatter.format(window.parseMoney(val));
+    };
+
+    window.formatMoneyInput = function (val) {
+      return window.parseMoney(val).toFixed(2).replace(".", ",");
+    };
+
+    window.getTodayISO = function () {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    };
+
+    window.getCurrentMonthISO = function () {
+      return window.getTodayISO().slice(0, 7);
+    };
+
+    window.shiftMonthISO = function (ym, delta) {
+      const parts = (ym || window.getCurrentMonthISO()).split("-").map(Number);
+      const dt = new Date(parts[0], parts[1] - 1 + delta, 1);
+      return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+    };
+
+    window.formatMonthLabel = function (ym) {
+      if (!ym) return "";
+      const [y, m] = ym.split("-").map(Number);
+      const dt = new Date(y, m - 1, 1);
+      return dt.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    };
+
+    window.formatDateBR = function (iso) {
+      if (!iso) return "";
+      const [y, m, d] = iso.split("-").map(Number);
+      const dt = new Date(y, m - 1, d);
+      return dt.toLocaleDateString("pt-BR", {
+        weekday: "short",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      });
+    };
+
+    window.formatPhoneField = function (input) {
+      let digits = input.value.replace(/\D/g, "").slice(0, 11);
+      if (digits.length > 6) {
+        input.value = `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+      } else if (digits.length > 2) {
+        input.value = `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+      } else if (digits.length > 0) {
+        input.value = `(${digits}`;
+      }
+    };
+
+    window.escapeHtml = function (str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    };
+
+    window.computeEventStatus = function (total, paid) {
+      const t = window.parseMoney(total);
+      const p = window.parseMoney(paid);
+      if (p >= t && t > 0) return "quitado";
+      if (p > 0 && p < t) return "sinal";
+      return "pendente";
+    };
+
+    window.showToast = function (msg, type = "success") {
+      const box = document.getElementById("toast-box");
+      if (!box) return;
+      const el = document.createElement("div");
+      const colors =
+        type === "error"
+          ? "bg-rose-600 text-white"
+          : type === "warning"
+          ? "bg-amber-500 text-slate-950"
+          : "bg-emerald-600 text-white";
+
+      el.className = `${colors} text-xs font-extrabold px-4 py-3 rounded-2xl shadow-xl text-center animate-modal`;
+      el.textContent = msg;
+      box.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = "0";
+        el.style.transition = "opacity 0.2s";
+        setTimeout(() => el.remove(), 220);
+      }, 2600);
+    };
+
+    // Normalizadores de documentos para manter o formato exato do Firestore
+    function normalizeEvent(raw) {
+      const nowISO = new Date().toISOString();
+      return {
+        id: String(raw.id || "ev_" + Date.now()),
+        date: raw.date || window.getTodayISO(),
+        client: raw.client || raw.clientName || "",
+        phone: raw.phone || raw.whatsapp || "",
+        description: raw.description || raw.eventType || "",
+        totalValue: window.parseMoney(raw.totalValue),
+        paidValue: window.parseMoney(raw.paidValue),
+        notes: raw.notes || "",
+        createdAt: raw.createdAt || nowISO,
+        updatedAt: raw.updatedAt || nowISO
+      };
+    }
+
+    function normalizeTx(raw) {
+      const nowISO = new Date().toISOString();
+      return {
+        id: String(raw.id || "tx_" + Date.now()),
+        date: raw.date || window.getTodayISO(),
+        costCenter: raw.costCenter || "festa",
+        type: raw.type || "entrada",
+        category: raw.category || "Outros",
+        description: raw.description || "",
+        amount: window.parseMoney(raw.amount),
+        reimbursable: Boolean(raw.reimbursable),
+        reimbursed: Boolean(raw.reimbursed),
+        relatedEventId: raw.relatedEventId || raw.eventId || null,
+        createdAt: raw.createdAt || nowISO,
+        updatedAt: raw.updatedAt || nowISO
+      };
+    }
+
+    function normalizeHouse(raw) {
+      return {
+        tenantName: raw?.tenantName ?? "Carlos Eduardo Mendes",
+        tenantPhone: raw?.tenantPhone ?? "(27) 99842-3190",
+        rentAmount: window.parseMoney(raw?.rentAmount ?? raw?.rentValue ?? 1850),
+        dueDay: parseInt(raw?.dueDay ?? 10, 10) || 10,
+        notes: raw?.notes ?? "Contrato residencial 12 meses",
+        initialBalance: window.parseMoney(raw?.initialBalance ?? 0)
+      };
+    }
+
+    // Dados iniciais de demonstração
+    window.getDefaultSampleData = function () {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = now.getMonth();
+      const curMonth = `${y}-${String(m + 1).padStart(2, "0")}`;
+
+      const makeDate = (dayOffset) => {
+        const dt = new Date(y, m, now.getDate() + dayOffset);
+        return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+      };
+
+      const nowISO = now.toISOString();
+
+      return {
+        activeTab: "resumo",
+        selectedMonth: curMonth,
+        allMonths: false,
+        caixaFilterCC: "todos",
+        caixaFilterType: "todos",
+        agendaFilter: "todas",
+        house: {
+          tenantName: "Carlos Eduardo Mendes",
+          tenantPhone: "(27) 99842-3190",
+          rentAmount: 1850.0,
+          dueDay: 10,
+          notes: "Contrato residencial — vencimento todo dia 10",
+          initialBalance: 0.0
+        },
+        events: [
+          normalizeEvent({
+            id: "ev_demo_1",
+            client: "Mariana Souza",
+            phone: "(27) 99712-4410",
+            date: makeDate(3),
+            description: "Aniversário Infantil",
+            totalValue: 1500.0,
+            paidValue: 600.0,
+            notes: "Horário das 10h às 20h. Incluso freezer e 15 jogos de mesa.",
+            createdAt: nowISO,
+            updatedAt: nowISO
+          }),
+          normalizeEvent({
+            id: "ev_demo_2",
+            client: "Rafael Oliveira",
+            phone: "(27) 99931-8820",
+            date: makeDate(9),
+            description: "Churrasco Família",
+            totalValue: 1200.0,
+            paidValue: 1200.0,
+            notes: "100% quitado. Entregar chaves às 08h.",
+            createdAt: nowISO,
+            updatedAt: nowISO
+          }),
+          normalizeEvent({
+            id: "ev_demo_3",
+            client: "Fernanda Lima",
+            phone: "(27) 99605-1299",
+            date: makeDate(16),
+            description: "Casamento Intimista",
+            totalValue: 2200.0,
+            paidValue: 0.0,
+            notes: "Aguardando confirmação do Pix de sinal.",
+            createdAt: nowISO,
+            updatedAt: nowISO
+          })
+        ],
+        transactions: [
+          normalizeTx({
+            id: "tx_demo_1",
+            type: "entrada",
+            costCenter: "festa",
+            date: makeDate(-4),
+            amount: 600.0,
+            category: "Sinal de Reserva",
+            description: "Sinal de reserva - Mariana Souza (Aniversário Infantil)",
+            reimbursable: false,
+            reimbursed: false,
+            relatedEventId: "ev_demo_1",
+            createdAt: nowISO,
+            updatedAt: nowISO
+          }),
+          normalizeTx({
+            id: "tx_demo_2",
+            type: "entrada",
+            costCenter: "festa",
+            date: makeDate(-2),
+            amount: 1200.0,
+            category: "Locação de Festa",
+            description: "Quitação locação - Rafael Oliveira (Churrasco Família)",
+            reimbursable: false,
+            reimbursed: false,
+            relatedEventId: "ev_demo_2",
+            createdAt: nowISO,
+            updatedAt: nowISO
+          }),
+          normalizeTx({
+            id: "tx_demo_3",
+            type: "saida",
+            costCenter: "festa",
+            date: makeDate(-1),
+            amount: 230.0,
+            category: "Limpeza/Piscina",
+            description: "Cloro, algicida e manutenção da piscina",
+            reimbursable: false,
+            reimbursed: false,
+            relatedEventId: null,
+            createdAt: nowISO,
+            updatedAt: nowISO
+          }),
+          normalizeTx({
+            id: "tx_demo_4",
+            type: "saida",
+            costCenter: "casa",
+            date: makeDate(0),
+            amount: 140.0,
+            category: "Manutenção/Obras",
+            description: "Reparo hidráulico registro da casa (cobrar inquilino)",
+            reimbursable: true,
+            reimbursed: false,
+            relatedEventId: null,
+            createdAt: nowISO,
+            updatedAt: nowISO
+          })
+        ]
+      };
+    };
+
+    window.appState = window.getDefaultSampleData();
+    let currentModalTxType = "entrada";
+    let pendingConfirmAction = null;
+
+    window.loadLocalData = function () {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          window.appState = window.getDefaultSampleData();
+          window.saveLocalData();
+          return;
+        }
+        const parsed = JSON.parse(raw);
+        const def = window.getDefaultSampleData();
+        window.appState = {
+          ...def,
+          ...parsed,
+          house: normalizeHouse(parsed.house || def.house),
+          events: Array.isArray(parsed.events) ? parsed.events.map(normalizeEvent) : def.events,
+          transactions: Array.isArray(parsed.transactions) ? parsed.transactions.map(normalizeTx) : def.transactions
+        };
+      } catch (e) {
+        console.error("Erro ao carregar localStorage:", e);
+        window.appState = window.getDefaultSampleData();
+      }
+    };
+
+    window.saveLocalData = function () {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(window.appState));
+      } catch (e) {
+        console.error("Erro ao salvar localStorage:", e);
+      }
+    };
+
+    // =========================================================
+    // CAMADA FIREBASE CLOUD FIRESTORE (pk-festas)
+    // =========================================================
+    function updateFirebaseStatusUI(state, errText = "") {
+      cloudStatus.state = state;
+      if (errText) cloudStatus.errorMessage = errText;
+      if (state === "online") {
+        cloudStatus.lastSync = new Date().toLocaleTimeString("pt-BR");
+        cloudStatus.errorMessage = "";
+      }
+
+      const dot = document.getElementById("firebase-status-dot");
+      const text = document.getElementById("firebase-status-text");
+      const configStatus = document.getElementById("config-fb-status");
+      const configSync = document.getElementById("config-fb-last-sync");
+      const diagStatus = document.getElementById("diag-fb-status");
+      const diagEvCount = document.getElementById("diag-fb-events-count");
+      const diagTxCount = document.getElementById("diag-fb-tx-count");
+      const diagErrBox = document.getElementById("diag-fb-error-box");
+
+      if (diagEvCount) diagEvCount.textContent = String(window.appState.events.length);
+      if (diagTxCount) diagTxCount.textContent = String(window.appState.transactions.length);
+      if (configSync && cloudStatus.lastSync) configSync.textContent = cloudStatus.lastSync;
+
+      if (state === "online") {
+        if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+        if (text) text.textContent = "🟢 Firebase Online • pk-festas";
+        if (configStatus) {
+          configStatus.textContent = "🟢 Conectado em Tempo Real";
+          configStatus.className = "font-extrabold text-emerald-400";
+        }
+        if (diagStatus) {
+          diagStatus.textContent = "🟢 Online e Sincronizado";
+          diagStatus.className = "font-extrabold text-emerald-600";
+        }
+        if (diagErrBox) diagErrBox.classList.add("hidden");
+      } else if (state === "syncing") {
+        if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
+        if (text) text.textContent = "🔄 Sincronizando pk-festas...";
+      } else if (state === "permission_error") {
+        if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-400";
+        if (text) text.textContent = "⚠️ Permissão Firestore Pendente";
+        if (configStatus) {
+          configStatus.textContent = "⚠️ Regras Firestore Pendentes (Salvo Local)";
+          configStatus.className = "font-extrabold text-amber-400";
+        }
+        if (diagStatus) {
+          diagStatus.textContent = "⚠️ Aguardando liberação nas Rules do Console";
+          diagStatus.className = "font-extrabold text-amber-600";
+        }
+        if (diagErrBox) {
+          diagErrBox.textContent = `Detalhe: ${cloudStatus.errorMessage || "Permissão negada nas regras do Firestore. Seus dados continuam salvos no aparelho."}`;
+          diagErrBox.classList.remove("hidden");
+        }
+      } else {
+        if (dot) dot.className = "w-2 h-2 rounded-full bg-rose-400";
+        if (text) text.textContent = "⚡ Modo Local • pk-festas";
+      }
+    }
+
+    async function cloudSaveEvent(evObj) {
+      if (!db) return;
+      updateFirebaseStatusUI("syncing");
+      try {
+        const clean = normalizeEvent({ ...evObj, updatedAt: new Date().toISOString() });
+        await setDoc(doc(db, "pk_events", clean.id), clean);
+        updateFirebaseStatusUI("online");
+      } catch (err) {
+        console.warn("Firestore save event warning:", err);
+        updateFirebaseStatusUI("permission_error", err.message);
+      }
+    }
+
+    async function cloudDeleteEvent(eventId) {
+      if (!db) return;
+      updateFirebaseStatusUI("syncing");
+      try {
+        await deleteDoc(doc(db, "pk_events", String(eventId)));
+        updateFirebaseStatusUI("online");
+      } catch (err) {
+        console.warn("Firestore delete event warning:", err);
+        updateFirebaseStatusUI("permission_error", err.message);
+      }
+    }
+
+    async function cloudSaveTx(txObj) {
+      if (!db) return;
+      updateFirebaseStatusUI("syncing");
+      try {
+        const clean = normalizeTx({ ...txObj, updatedAt: new Date().toISOString() });
+        await setDoc(doc(db, "pk_transactions", clean.id), clean);
+        updateFirebaseStatusUI("online");
+      } catch (err) {
+        console.warn("Firestore save tx warning:", err);
+        updateFirebaseStatusUI("permission_error", err.message);
+      }
+    }
+
+    async function cloudDeleteTx(txId) {
+      if (!db) return;
+      updateFirebaseStatusUI("syncing");
+      try {
+        await deleteDoc(doc(db, "pk_transactions", String(txId)));
+        updateFirebaseStatusUI("online");
+      } catch (err) {
+        console.warn("Firestore delete tx warning:", err);
+        updateFirebaseStatusUI("permission_error", err.message);
+      }
+    }
+
+    async function cloudSaveHouseConfig(houseObj) {
+      if (!db) return;
+      updateFirebaseStatusUI("syncing");
+      try {
+        const clean = {
+          ...normalizeHouse(houseObj),
+          updatedAt: new Date().toISOString()
+        };
+        await setDoc(doc(db, "pk_settings", "house_config"), clean);
+        updateFirebaseStatusUI("online");
+      } catch (err) {
+        console.warn("Firestore save house_config warning:", err);
+        updateFirebaseStatusUI("permission_error", err.message);
+      }
+    }
+
+    window.forceCloudSync = async function () {
+      if (!db) {
+        window.showToast("SDK Firebase não disponível.", "error");
+        return;
+      }
+      updateFirebaseStatusUI("syncing");
+      try {
+        const promises = [];
+        window.appState.events.forEach((ev) => {
+          const clean = normalizeEvent(ev);
+          promises.push(setDoc(doc(db, "pk_events", clean.id), clean));
+        });
+        window.appState.transactions.forEach((tx) => {
+          const clean = normalizeTx(tx);
+          promises.push(setDoc(doc(db, "pk_transactions", clean.id), clean));
+        });
+        promises.push(
+          setDoc(doc(db, "pk_settings", "house_config"), {
+            ...normalizeHouse(window.appState.house),
+            updatedAt: new Date().toISOString()
+          })
+        );
+        await Promise.all(promises);
+        updateFirebaseStatusUI("online");
+        window.showToast("☁️ Todos os dados foram sincronizados no Firebase (pk-festas)!");
+      } catch (err) {
+        console.warn("Erro ao sincronizar tudo no Firestore:", err);
+        updateFirebaseStatusUI("permission_error", err.message);
+        window.showToast("Salvo localmente! Libere as Rules do Firestore no console.", "warning");
+      }
+    };
+
+    function startRealtimeListeners() {
+      if (!db) return;
+
+      // 1. Listener da coleção pk_events
+      onSnapshot(
+        collection(db, "pk_events"),
+        (snapshot) => {
+          if (snapshot.empty && !cloudStatus.eventsSeeded && window.appState.events.length > 0) {
+            cloudStatus.eventsSeeded = true;
+            window.appState.events.forEach((ev) => cloudSaveEvent(ev));
+            updateFirebaseStatusUI("online");
+            return;
+          }
+          cloudStatus.eventsSeeded = true;
+          const remoteEvents = [];
+          snapshot.forEach((docSnap) => {
+            remoteEvents.push(normalizeEvent({ id: docSnap.id, ...docSnap.data() }));
+          });
+          window.appState.events = remoteEvents;
+          window.saveLocalData();
+          window.renderApp();
+          updateFirebaseStatusUI("online");
+        },
+        (err) => {
+          console.warn("onSnapshot pk_events error:", err);
+          updateFirebaseStatusUI("permission_error", err.message);
+        }
+      );
+
+      // 2. Listener da coleção pk_transactions
+      onSnapshot(
+        collection(db, "pk_transactions"),
+        (snapshot) => {
+          if (snapshot.empty && !cloudStatus.txSeeded && window.appState.transactions.length > 0) {
+            cloudStatus.txSeeded = true;
+            window.appState.transactions.forEach((tx) => cloudSaveTx(tx));
+            updateFirebaseStatusUI("online");
+            return;
+          }
+          cloudStatus.txSeeded = true;
+          const remoteTxs = [];
+          snapshot.forEach((docSnap) => {
+            remoteTxs.push(normalizeTx({ id: docSnap.id, ...docSnap.data() }));
+          });
+          window.appState.transactions = remoteTxs;
+          window.saveLocalData();
+          window.renderApp();
+          updateFirebaseStatusUI("online");
+        },
+        (err) => {
+          console.warn("onSnapshot pk_transactions error:", err);
+          updateFirebaseStatusUI("permission_error", err.message);
+        }
+      );
+
+      // 3. Listener do documento pk_settings/house_config
+      onSnapshot(
+        doc(db, "pk_settings", "house_config"),
+        (docSnap) => {
+          if (!docSnap.exists()) {
+            if (!cloudStatus.houseSeeded) {
+              cloudStatus.houseSeeded = true;
+              cloudSaveHouseConfig(window.appState.house);
+            }
+            return;
+          }
+          cloudStatus.houseSeeded = true;
+          window.appState.house = normalizeHouse(docSnap.data());
+          window.saveLocalData();
+          window.renderApp();
+          updateFirebaseStatusUI("online");
+        },
+        (err) => {
+          console.warn("onSnapshot house_config error:", err);
+          updateFirebaseStatusUI("permission_error", err.message);
+        }
+      );
+    }
+
+    // =========================================================
+    // NAVEGAÇÃO E RENDERIZAÇÃO DAS 4 ABAS
+    // =========================================================
+    window.switchTab = function (tabName) {
+      window.appState.activeTab = tabName;
+      window.saveLocalData();
+
+      ["resumo", "agenda", "caixa", "config"].forEach((t) => {
+        const sec = document.getElementById(`tab-${t}`);
+        if (sec) sec.classList.toggle("hidden", t !== tabName);
+      });
+
+      document.querySelectorAll(".nav-tab-btn").forEach((btn) => {
+        const active = btn.getAttribute("data-tab") === tabName;
+        btn.className = `nav-tab-btn flex flex-col items-center justify-center gap-1 transition cursor-pointer ${
+          active ? "text-emerald-400" : "text-slate-400 hover:text-slate-200"
+        }`;
+      });
+
+      window.renderApp();
+    };
+
+    window.renderApp = function () {
+      window.renderHeaderAndResumo();
+      window.renderAgenda();
+      window.renderCaixa();
+      window.renderConfig();
+    };
+
+    window.renderHeaderAndResumo = function () {
+      const st = window.appState;
+      const periodText = st.allMonths
+        ? "Todos os Meses"
+        : window.formatMonthLabel(st.selectedMonth);
+
+      document.getElementById("header-period-label").textContent = periodText;
+      document.getElementById("resumo-month-label").textContent = periodText;
+
+      // Saldo Real em Conta Única (Saldo Inicial + Todas Entradas - Todas Saídas)
+      let allIn = 0;
+      let allOut = 0;
+      st.transactions.forEach((tx) => {
+        const val = window.parseMoney(tx.amount);
+        if (tx.type === "entrada") allIn += val;
+        else allOut += val;
+      });
+      const initialBal = window.parseMoney(st.house?.initialBalance || 0);
+      const realBalance = initialBal + allIn - allOut;
+
+      const headerBalEl = document.getElementById("header-saldo-conta");
+      headerBalEl.textContent = window.formatBRL(realBalance);
+      headerBalEl.className = `text-sm font-extrabold tabular-nums ${
+        realBalance < 0 ? "text-rose-400" : "text-emerald-400"
+      }`;
+
+      const saldoEl = document.getElementById("resumo-saldo-geral");
+      saldoEl.textContent = window.formatBRL(realBalance);
+      saldoEl.className = `text-3xl font-extrabold tracking-tight tabular-nums mt-1.5 ${
+        realBalance < 0 ? "text-rose-400" : "text-white"
+      }`;
+
+      // Indicadores filtrados pelo período selecionado
+      let festaIn = 0,
+        festaOut = 0,
+        casaIn = 0,
+        casaOut = 0;
+
+      st.transactions
+        .filter((tx) => st.allMonths || (tx.date && tx.date.startsWith(st.selectedMonth)))
+        .forEach((tx) => {
+          const val = window.parseMoney(tx.amount);
+          if (tx.costCenter === "festa") {
+            if (tx.type === "entrada") festaIn += val;
+            else festaOut += val;
+          } else if (tx.costCenter === "casa") {
+            if (tx.type === "entrada") casaIn += val;
+            else casaOut += val;
+          }
+        });
+
+      const festaProfit = festaIn - festaOut;
+      document.getElementById("resumo-festa-receitas").textContent = window.formatBRL(festaIn);
+      document.getElementById("resumo-festa-despesas").textContent = window.formatBRL(festaOut);
+      const festaBadge = document.getElementById("resumo-festa-lucro");
+      festaBadge.textContent = `Lucro: ${window.formatBRL(festaProfit)}`;
+      festaBadge.className = `text-xs font-extrabold px-2.5 py-1 rounded-xl tabular-nums ${
+        festaProfit >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
+      }`;
+
+      // Total a Receber de todas as festas agendadas
+      const totalPendingEvents = st.events.reduce((sum, ev) => {
+        const rem = Math.max(0, window.parseMoney(ev.totalValue) - window.parseMoney(ev.paidValue));
+        return sum + rem;
+      }, 0);
+      document.getElementById("resumo-festa-areceber").textContent = window.formatBRL(totalPendingEvents);
+
+      // Casa Alugada
+      const casaProfit = casaIn - casaOut;
+      document.getElementById("resumo-casa-receitas").textContent = window.formatBRL(casaIn);
+      document.getElementById("resumo-casa-despesas").textContent = window.formatBRL(casaOut);
+      const casaBadge = document.getElementById("resumo-casa-lucro");
+      casaBadge.textContent = `Lucro: ${window.formatBRL(casaProfit)}`;
+      casaBadge.className = `text-xs font-extrabold px-2.5 py-1 rounded-xl tabular-nums ${
+        casaProfit >= 0 ? "bg-teal-50 text-teal-700" : "bg-rose-50 text-rose-700"
+      }`;
+
+      // Reembolsáveis pendentes do inquilino
+      const openReimbursable = st.transactions
+        .filter((tx) => tx.costCenter === "casa" && tx.type === "saida" && tx.reimbursable && !tx.reimbursed)
+        .reduce((sum, tx) => sum + window.parseMoney(tx.amount), 0);
+      document.getElementById("resumo-casa-reembolsavel").textContent = window.formatBRL(openReimbursable);
+
+      // Lista de Próximas Festas & Pendências
+      const upcomingContainer = document.getElementById("resumo-upcoming-list");
+      const sortedEvents = [...st.events].sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+
+      if (sortedEvents.length === 0) {
+        upcomingContainer.innerHTML = `
+          <div class="bg-white border border-slate-200 rounded-2xl p-5 text-center space-y-2">
+            <p class="text-xs font-semibold text-slate-500">Nenhuma festa cadastrada na agenda.</p>
+            <button type="button" data-action="open-event-modal" class="bg-emerald-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer">
+              + Nova Reserva de Festa
+            </button>
+          </div>
+        `;
+      } else {
+        upcomingContainer.innerHTML = sortedEvents.map((ev) => window.renderEventCardHTML(ev)).join("");
+      }
+    };
+
+    window.renderEventCardHTML = function (ev) {
+      const total = window.parseMoney(ev.totalValue);
+      const paid = window.parseMoney(ev.paidValue);
+      const remaining = Math.max(0, total - paid);
+      const status = window.computeEventStatus(total, paid);
+      const pct = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0;
+
+      let statusBadge = `<span class="text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-rose-100 text-rose-800">🔴 Aguardando Sinal</span>`;
+      let barColor = "bg-rose-500";
+      if (status === "quitado") {
+        statusBadge = `<span class="text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">🟢 Quitado</span>`;
+        barColor = "bg-emerald-500";
+      } else if (status === "sinal") {
+        statusBadge = `<span class="text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">🟡 Sinal Pago</span>`;
+        barColor = "bg-amber-500";
+      }
+
+      const clientName = ev.client || ev.clientName || "Cliente";
+      const phone = ev.phone || ev.whatsapp || "";
+      const desc = ev.description || ev.eventType || "";
+
+      return `
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="text-xs font-extrabold text-emerald-700">📅 ${window.formatDateBR(ev.date)}</span>
+                ${desc ? `<span class="text-[10px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">${window.escapeHtml(desc)}</span>` : ""}
+              </div>
+              <h4 class="text-base font-extrabold text-slate-900 mt-0.5">${window.escapeHtml(clientName)}</h4>
+              ${phone ? `<p class="text-[11px] text-slate-500 font-medium">📱 ${window.escapeHtml(phone)}</p>` : ""}
+            </div>
+            ${statusBadge}
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex justify-between text-[10px] font-bold text-slate-500">
+              <span>Progresso (${pct}%)</span>
+              <span>Saldo a Receber: ${window.formatBRL(remaining)}</span>
+            </div>
+            <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div class="h-full ${barColor} transition-all duration-300" style="width: ${pct}%"></div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 bg-slate-50 border border-slate-100 rounded-xl p-2.5 text-xs">
+            <div>
+              <span class="text-[10px] text-slate-500 block">Valor Total</span>
+              <span class="font-extrabold text-slate-900 tabular-nums">${window.formatBRL(total)}</span>
+            </div>
+            <div class="border-x border-slate-200 px-2">
+              <span class="text-[10px] text-slate-500 block">Já Pago</span>
+              <span class="font-extrabold text-emerald-600 tabular-nums">${window.formatBRL(paid)}</span>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] text-slate-500 block">A Receber</span>
+              <span class="font-extrabold tabular-nums ${remaining > 0 ? "text-amber-700" : "text-slate-400"}">${window.formatBRL(remaining)}</span>
+            </div>
+          </div>
+
+          ${ev.notes ? `<p class="text-xs text-slate-600 bg-slate-50 rounded-xl px-3 py-2 border border-slate-100">📝 ${window.escapeHtml(ev.notes)}</p>` : ""}
+
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button type="button" data-action="pay-event" data-id="${ev.id}" class="py-2.5 px-3 rounded-xl ${
+              remaining > 0
+                ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs"
+                : "bg-emerald-50 hover:bg-emerald-100 text-emerald-800"
+            } active:scale-95 font-extrabold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer">
+              <span>💵 ${remaining > 0 ? "Quitar / Abater" : "100% Quitado"}</span>
+            </button>
+
+            <button type="button" data-action="edit-event" data-id="${ev.id}" class="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-800 font-extrabold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer">
+              <span>✏️ Editar / Valores</span>
+            </button>
+
+            <button type="button" data-action="whatsapp-event" data-id="${ev.id}" class="py-2.5 px-3 rounded-xl bg-teal-50 hover:bg-teal-100 active:scale-95 text-teal-900 border border-teal-200 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer">
+              <span>💬 Cobrar WhatsApp</span>
+            </button>
+
+            <button type="button" data-action="delete-event" data-id="${ev.id}" class="py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 active:scale-95 text-rose-700 border border-rose-200 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer">
+              <span>🗑️ Excluir</span>
+            </button>
+          </div>
+        </div>
+      `;
+    };
+
+    window.renderAgenda = function () {
+      const st = window.appState;
+      const allEvents = [...st.events].sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+
+      const counts = {
+        todas: allEvents.length,
+        abertas: allEvents.filter((e) => window.computeEventStatus(e.totalValue, e.paidValue) !== "quitado").length,
+        quitado: allEvents.filter((e) => window.computeEventStatus(e.totalValue, e.paidValue) === "quitado").length
+      };
+
+      document.querySelectorAll('[data-action="filter-agenda"]').forEach((btn) => {
+        const f = btn.getAttribute("data-filter");
+        const active = st.agendaFilter === f;
+        const labelMap = {
+          todas: `Todas (${counts.todas})`,
+          abertas: `Sinal Pago / Pendente (${counts.abertas})`,
+          quitado: `Quitadas (${counts.quitado})`
+        };
+        btn.textContent = labelMap[f] || f;
+        btn.className = active
+          ? "px-3.5 py-2 rounded-xl text-xs font-extrabold bg-emerald-600 text-white shadow-xs whitespace-nowrap transition cursor-pointer"
+          : "px-3.5 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 whitespace-nowrap transition cursor-pointer";
+      });
+
+      const filtered = allEvents.filter((ev) => {
+        const status = window.computeEventStatus(ev.totalValue, ev.paidValue);
+        if (st.agendaFilter === "abertas") return status !== "quitado";
+        if (st.agendaFilter === "quitado") return status === "quitado";
+        return true;
+      });
+
+      const listEl = document.getElementById("agenda-events-list");
+      if (filtered.length === 0) {
+        listEl.innerHTML = `
+          <div class="bg-white border border-slate-200 rounded-2xl p-6 text-center space-y-2.5">
+            <p class="text-xs font-semibold text-slate-500">Nenhuma festa encontrada para este filtro.</p>
+            <button type="button" data-action="open-event-modal" class="bg-emerald-600 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl cursor-pointer">
+              + Nova Reserva de Festa
+            </button>
+          </div>
+        `;
+      } else {
+        listEl.innerHTML = filtered.map((ev) => window.renderEventCardHTML(ev)).join("");
+      }
+    };
+
+    // =========================================================
+    // CRUD DE FESTAS (OPTIMISTIC UI + FIREBASE pk_events)
+    // =========================================================
+    window.openEventModal = function (eventId = null) {
+      const modal = document.getElementById("modal-event");
+      const titleEl = document.getElementById("modal-event-title");
+      document.getElementById("ev-conflict-warning").classList.add("hidden");
+
+      if (eventId) {
+        const ev = window.appState.events.find((item) => item.id === eventId);
+        if (!ev) return;
+        titleEl.textContent = "Editar Festa / Alterar Valores";
+        document.getElementById("ev-id").value = ev.id;
+        document.getElementById("ev-date").value = ev.date || window.getTodayISO();
+        document.getElementById("ev-type").value = ev.description || ev.eventType || "";
+        document.getElementById("ev-client").value = ev.client || ev.clientName || "";
+        document.getElementById("ev-phone").value = ev.phone || ev.whatsapp || "";
+        document.getElementById("ev-total").value = window.formatMoneyInput(ev.totalValue);
+        document.getElementById("ev-paid").value = window.formatMoneyInput(ev.paidValue);
+        document.getElementById("ev-notes").value = ev.notes || "";
+        document.getElementById("ev-sync-cash").checked = true;
+      } else {
+        titleEl.textContent = "Nova Reserva de Festa";
+        document.getElementById("ev-id").value = "";
+        document.getElementById("ev-date").value = window.getTodayISO();
+        document.getElementById("ev-type").value = "";
+        document.getElementById("ev-client").value = "";
+        document.getElementById("ev-phone").value = "";
+        document.getElementById("ev-total").value = "";
+        document.getElementById("ev-paid").value = "0,00";
+        document.getElementById("ev-notes").value = "";
+        document.getElementById("ev-sync-cash").checked = true;
+      }
+
+      window.updateEventModalPreview();
+      window.checkDateConflictWarning();
+      modal.classList.remove("hidden");
+    };
+
+    window.closeEventModal = function () {
+      document.getElementById("modal-event").classList.add("hidden");
+    };
+
+    window.updateEventModalPreview = function () {
+      const total = window.parseMoney(document.getElementById("ev-total").value);
+      const paid = window.parseMoney(document.getElementById("ev-paid").value);
+      const remaining = Math.max(0, total - paid);
+      const status = window.computeEventStatus(total, paid);
+
+      document.getElementById("ev-preview-remaining").textContent = window.formatBRL(remaining);
+      const stBadge = document.getElementById("ev-preview-status");
+
+      if (status === "quitado") {
+        stBadge.textContent = "🟢 Quitado";
+        stBadge.className = "text-xs font-extrabold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300";
+      } else if (status === "sinal") {
+        stBadge.textContent = "🟡 Sinal Pago";
+        stBadge.className = "text-xs font-extrabold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300";
+      } else {
+        stBadge.textContent = "🔴 Aguardando Sinal";
+        stBadge.className = "text-xs font-extrabold px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300";
+      }
+    };
+
+    window.checkDateConflictWarning = function () {
+      const dateVal = document.getElementById("ev-date").value;
+      const currentId = document.getElementById("ev-id").value;
+      const warnBox = document.getElementById("ev-conflict-warning");
+      const warnName = document.getElementById("ev-conflict-name");
+
+      if (!dateVal) {
+        warnBox.classList.add("hidden");
+        return;
+      }
+
+      const other = window.appState.events.find((ev) => ev.date === dateVal && ev.id !== currentId);
+      if (other) {
+        warnName.textContent = other.client || other.clientName;
+        warnBox.classList.remove("hidden");
+      } else {
+        warnBox.classList.add("hidden");
+      }
+    };
+
+    window.saveEvent = function () {
+      const editingId = document.getElementById("ev-id").value;
+      const date = document.getElementById("ev-date").value || window.getTodayISO();
+      const description = document.getElementById("ev-type").value.trim();
+      const client = document.getElementById("ev-client").value.trim();
+      const phone = document.getElementById("ev-phone").value.trim();
+      const totalValue = window.parseMoney(document.getElementById("ev-total").value);
+      const paidValue = window.parseMoney(document.getElementById("ev-paid").value);
+      const notes = document.getElementById("ev-notes").value.trim();
+      const syncCash = document.getElementById("ev-sync-cash").checked;
+
+      if (!client) {
+        window.showToast("Informe o nome do cliente.", "error");
+        document.getElementById("ev-client").focus();
+        return;
+      }
+      if (totalValue <= 0) {
+        window.showToast("Informe o Valor Total da festa.", "error");
+        document.getElementById("ev-total").focus();
+        return;
+      }
+
+      const nowISO = new Date().toISOString();
+
+      if (editingId) {
+        const idx = window.appState.events.findIndex((e) => e.id === editingId);
+        if (idx !== -1) {
+          const oldPaid = window.parseMoney(window.appState.events[idx].paidValue);
+          const diffPaid = Math.round((paidValue - oldPaid) * 100) / 100;
+
+          const updatedEv = normalizeEvent({
+            ...window.appState.events[idx],
+            date,
+            description,
+            client,
+            phone,
+            totalValue,
+            paidValue,
+            notes,
+            updatedAt: nowISO
+          });
+
+          window.appState.events[idx] = updatedEv;
+          cloudSaveEvent(updatedEv);
+
+          if (syncCash && diffPaid !== 0) {
+            if (diffPaid > 0) {
+              const newTx = normalizeTx({
+                id: "tx_" + Date.now(),
+                type: "entrada",
+                costCenter: "festa",
+                date: window.getTodayISO(),
+                amount: diffPaid,
+                category: paidValue >= totalValue ? "Locação de Festa" : "Sinal de Reserva",
+                description: `Recebimento festa - ${client}${description ? " (" + description + ")" : ""}`,
+                reimbursable: false,
+                reimbursed: false,
+                relatedEventId: editingId,
+                createdAt: nowISO,
+                updatedAt: nowISO
+              });
+              window.appState.transactions.unshift(newTx);
+              cloudSaveTx(newTx);
+            } else {
+              const linkedTxs = window.appState.transactions.filter(
+                (t) => t.relatedEventId === editingId && t.type === "entrada"
+              );
+              if (linkedTxs.length === 1) {
+                linkedTxs[0].amount = paidValue;
+                linkedTxs[0].updatedAt = nowISO;
+                cloudSaveTx(linkedTxs[0]);
+              }
+            }
+          }
+        }
+        window.showToast("Festa atualizada com sucesso!");
+      } else {
+        const newEventId = "ev_" + Date.now();
+        const newEv = normalizeEvent({
+          id: newEventId,
+          date,
+          description,
+          client,
+          phone,
+          totalValue,
+          paidValue,
+          notes,
+          createdAt: nowISO,
+          updatedAt: nowISO
+        });
+
+        window.appState.events.push(newEv);
+        cloudSaveEvent(newEv);
+
+        if (syncCash && paidValue > 0) {
+          const newTx = normalizeTx({
+            id: "tx_" + (Date.now() + 1),
+            type: "entrada",
+            costCenter: "festa",
+            date: window.getTodayISO(),
+            amount: paidValue,
+            category: paidValue >= totalValue ? "Locação de Festa" : "Sinal de Reserva",
+            description: `${paidValue >= totalValue ? "Quitação" : "Sinal"} festa - ${client}${
+              description ? " (" + description + ")" : ""
+            }`,
+            reimbursable: false,
+            reimbursed: false,
+            relatedEventId: newEventId,
+            createdAt: nowISO,
+            updatedAt: nowISO
+          });
+          window.appState.transactions.unshift(newTx);
+          cloudSaveTx(newTx);
+        }
+        window.showToast("Nova reserva agendada e sincronizada!");
+      }
+
+      window.saveLocalData();
+      window.closeEventModal();
+      window.renderApp();
+    };
+
+    window.payRemainingEvent = function (eventId) {
+      const ev = window.appState.events.find((e) => e.id === eventId);
+      if (!ev) return;
+
+      const total = window.parseMoney(ev.totalValue);
+      const paid = window.parseMoney(ev.paidValue);
+      const remaining = Math.max(0, total - paid);
+
+      if (remaining <= 0) {
+        window.openEventModal(eventId);
+        return;
+      }
+
+      document.getElementById("pay-ev-id").value = ev.id;
+      document.getElementById("pay-ev-client").textContent = ev.client || ev.clientName;
+      document.getElementById("pay-ev-total").textContent = window.formatBRL(total);
+      document.getElementById("pay-ev-paid").textContent = window.formatBRL(paid);
+      document.getElementById("pay-ev-remaining").textContent = window.formatBRL(remaining);
+      document.getElementById("pay-ev-amount").value = window.formatMoneyInput(remaining);
+      document.getElementById("pay-ev-sync-cash").checked = true;
+
+      document.getElementById("modal-pay-event").classList.remove("hidden");
+    };
+
+    window.closePayEventModal = function () {
+      document.getElementById("modal-pay-event").classList.add("hidden");
+    };
+
+    window.confirmPayEvent = function () {
+      const eventId = document.getElementById("pay-ev-id").value;
+      const amountReceived = window.parseMoney(document.getElementById("pay-ev-amount").value);
+      const syncCash = document.getElementById("pay-ev-sync-cash").checked;
+      const ev = window.appState.events.find((e) => e.id === eventId);
+
+      if (!ev) return;
+      if (amountReceived <= 0) {
+        window.showToast("Digite um valor maior que zero.", "error");
+        return;
+      }
+
+      ev.paidValue = Math.round((window.parseMoney(ev.paidValue) + amountReceived) * 100) / 100;
+      ev.updatedAt = new Date().toISOString();
+      const isFull = ev.paidValue >= window.parseMoney(ev.totalValue);
+
+      cloudSaveEvent(ev);
+
+      if (syncCash) {
+        const newTx = normalizeTx({
+          id: "tx_" + Date.now(),
+          type: "entrada",
+          costCenter: "festa",
+          date: window.getTodayISO(),
+          amount: amountReceived,
+          category: isFull ? "Locação de Festa" : "Sinal de Reserva",
+          description: `${isFull ? "Quitação saldo" : "Pagamento parcial"} festa - ${ev.client || ev.clientName}`,
+          reimbursable: false,
+          reimbursed: false,
+          relatedEventId: ev.id
+        });
+        window.appState.transactions.unshift(newTx);
+        cloudSaveTx(newTx);
+      }
+
+      window.saveLocalData();
+      window.closePayEventModal();
+      window.renderApp();
+      window.showToast(`Recebimento de ${window.formatBRL(amountReceived)} confirmado!`);
+    };
+
+    window.deleteEvent = function (eventId) {
+      const ev = window.appState.events.find((e) => e.id === eventId);
+      if (!ev) return;
+
+      const hasLinkedTx = window.appState.transactions.some((t) => t.relatedEventId === eventId);
+      const clientName = ev.client || ev.clientName;
+
+      window.openCustomConfirm({
+        title: "Excluir Reserva de Festa",
+        message: `Tem certeza que deseja excluir a festa de "${clientName}" (${window.formatDateBR(ev.date)})?`,
+        showExtraCheckbox: hasLinkedTx,
+        extraCheckboxLabel: "Excluir também os lançamentos financeiros desta festa no Fluxo de Caixa",
+        onConfirm: (removeLinkedCash) => {
+          window.appState.events = window.appState.events.filter((e) => e.id !== eventId);
+          cloudDeleteEvent(eventId);
+
+          if (removeLinkedCash) {
+            const toRemove = window.appState.transactions.filter((t) => t.relatedEventId === eventId);
+            window.appState.transactions = window.appState.transactions.filter((t) => t.relatedEventId !== eventId);
+            toRemove.forEach((t) => cloudDeleteTx(t.id));
+          }
+
+          window.saveLocalData();
+          window.renderApp();
+          window.showToast("Reserva excluída com sucesso!");
+        }
+      });
+    };
+
+    window.sendEventWhatsapp = function (eventId) {
+      const ev = window.appState.events.find((e) => e.id === eventId);
+      if (!ev) return;
+
+      const clientName = ev.client || ev.clientName;
+      const desc = ev.description || ev.eventType || "";
+      const phone = ev.phone || ev.whatsapp || "";
+      const total = window.parseMoney(ev.totalValue);
+      const paid = window.parseMoney(ev.paidValue);
+      const remaining = Math.max(0, total - paid);
+
+      let text = `Olá, *${clientName}*! Tudo bem?\n\nSegue o demonstrativo da sua reserva na *PK Festas*:\n📅 *Data:* ${window.formatDateBR(ev.date)}\n`;
+      if (desc) text += `🎉 *Evento:* ${desc}\n`;
+      text += `💰 *Valor Total:* ${window.formatBRL(total)}\n✅ *Valor Já Pago:* ${window.formatBRL(paid)}\n`;
+
+      if (remaining > 0) {
+        text += `⏳ *Saldo a Receber:* ${window.formatBRL(remaining)}\n\nQualquer dúvida sobre o pagamento restante ou entrega das chaves, estou à disposição!`;
+      } else {
+        text += `🟢 *Status:* 100% Quitado!\n\nSua reserva está confirmada. Até lá!`;
+      }
+
+      let digits = phone.replace(/\D/g, "");
+      if (digits.length === 10 || digits.length === 11) digits = "55" + digits;
+      const url = digits
+        ? `https://wa.me/${digits}?text=${encodeURIComponent(text)}`
+        : `https://wa.me/?text=${encodeURIComponent(text)}`;
+      window.open(url, "_blank");
+    };
+
+    // =========================================================
+    // CRUD DO FLUXO DE CAIXA (OPTIMISTIC UI + pk_transactions)
+    // =========================================================
+    window.renderCaixa = function () {
+      const st = window.appState;
+      document.getElementById("caixa-filter-cc").value = st.caixaFilterCC || "todos";
+      document.getElementById("caixa-filter-type").value = st.caixaFilterType || "todos";
+
+      const filtered = st.transactions
+        .filter((tx) => {
+          const matchMonth = st.allMonths || (tx.date && tx.date.startsWith(st.selectedMonth));
+          const matchCC = st.caixaFilterCC === "todos" || tx.costCenter === st.caixaFilterCC;
+          const matchType = st.caixaFilterType === "todos" || tx.type === st.caixaFilterType;
+          return matchMonth && matchCC && matchType;
+        })
+        .sort((a, b) => (b.date || "").localeCompare(a.date || "") || String(b.id).localeCompare(String(a.id)));
+
+      let sumIn = 0;
+      let sumOut = 0;
+      filtered.forEach((tx) => {
+        const val = window.parseMoney(tx.amount);
+        if (tx.type === "entrada") sumIn += val;
+        else sumOut += val;
+      });
+      const net = sumIn - sumOut;
+
+      document.getElementById("caixa-sum-in").textContent = window.formatBRL(sumIn);
+      document.getElementById("caixa-sum-out").textContent = window.formatBRL(sumOut);
+      const netEl = document.getElementById("caixa-sum-net");
+      netEl.textContent = window.formatBRL(net);
+      netEl.className = `text-xs font-extrabold tabular-nums ${net >= 0 ? "text-emerald-600" : "text-rose-600"}`;
+
+      const listEl = document.getElementById("caixa-tx-list");
+      if (filtered.length === 0) {
+        listEl.innerHTML = `
+          <div class="bg-white border border-slate-200 rounded-2xl p-6 text-center space-y-2">
+            <p class="text-xs font-semibold text-slate-500">Nenhum lançamento encontrado neste período/filtro.</p>
+            <button type="button" data-action="open-tx-modal" class="bg-slate-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer">
+              + Nova Entrada / Saída
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = filtered
+        .map((tx) => {
+          const isIn = tx.type === "entrada";
+          const ccLabel =
+            tx.costCenter === "casa"
+              ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-teal-100 text-teal-900">🏠 Casa Alugada</span>`
+              : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900">🎉 Área de Festa</span>`;
+
+          let reimbBadge = "";
+          if (tx.reimbursable) {
+            reimbBadge = tx.reimbursed
+              ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">Reembolsado</span>`
+              : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900">Reembolsável</span>`;
+          }
+
+          return `
+            <div class="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs space-y-2.5">
+              <div class="flex items-start justify-between gap-2">
+                <div class="space-y-1 min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    ${ccLabel}
+                    <span class="text-[11px] font-bold text-slate-500">${window.escapeHtml(tx.category)}</span>
+                    ${reimbBadge}
+                  </div>
+                  <p class="text-sm font-extrabold text-slate-900 break-words">${window.escapeHtml(tx.description)}</p>
+                  <span class="text-[11px] text-slate-400 font-medium block">📅 ${window.formatDateBR(tx.date)}</span>
+                </div>
+                <div class="text-right shrink-0">
+                  <span class="text-sm font-extrabold tabular-nums ${isIn ? "text-emerald-600" : "text-rose-600"}">
+                    ${isIn ? "+" : "−"} ${window.formatBRL(tx.amount)}
+                  </span>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button type="button" data-action="edit-tx" data-id="${tx.id}" class="py-1.5 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
+                  ✏️ Editar
+                </button>
+                <button type="button" data-action="delete-tx" data-id="${tx.id}" class="py-1.5 px-3 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition cursor-pointer">
+                  🗑️ Excluir
+                </button>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+    };
+
+    window.openTransactionModal = function (txId = null, presetReimbursable = false) {
+      const modal = document.getElementById("modal-tx");
+      const titleEl = document.getElementById("modal-tx-title");
+
+      if (txId) {
+        const tx = window.appState.transactions.find((t) => t.id === txId);
+        if (!tx) return;
+        titleEl.textContent = "Editar Lançamento do Caixa";
+        document.getElementById("tx-id").value = tx.id;
+        window.setModalTxType(tx.type);
+        document.getElementById("tx-cc").value = tx.costCenter || "festa";
+        document.getElementById("tx-category").value = tx.category || "Outros";
+        document.getElementById("tx-amount").value = window.formatMoneyInput(tx.amount);
+        document.getElementById("tx-date").value = tx.date || window.getTodayISO();
+        document.getElementById("tx-desc").value = tx.description || "";
+        document.getElementById("tx-reimbursable").checked = Boolean(tx.reimbursable);
+      } else {
+        titleEl.textContent = "Nova Entrada / Saída no Caixa";
+        document.getElementById("tx-id").value = "";
+        window.setModalTxType(presetReimbursable ? "saida" : "entrada");
+        document.getElementById("tx-cc").value = presetReimbursable ? "casa" : "festa";
+        document.getElementById("tx-category").value = presetReimbursable ? "Manutenção/Obras" : "Locação de Festa";
+        document.getElementById("tx-amount").value = "";
+        document.getElementById("tx-date").value = window.getTodayISO();
+        document.getElementById("tx-desc").value = "";
+        document.getElementById("tx-reimbursable").checked = Boolean(presetReimbursable);
+      }
+
+      window.toggleTxReimbursableVisibility();
+      modal.classList.remove("hidden");
+    };
+
+    window.closeTransactionModal = function () {
+      document.getElementById("modal-tx").classList.add("hidden");
+    };
+
+    window.setModalTxType = function (type) {
+      currentModalTxType = type;
+      const btnIn = document.getElementById("btn-tx-entrada");
+      const btnOut = document.getElementById("btn-tx-saida");
+
+      if (type === "entrada") {
+        btnIn.className = "py-2.5 rounded-xl text-xs font-extrabold bg-emerald-600 text-white shadow-xs transition cursor-pointer";
+        btnOut.className = "py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer";
+      } else {
+        btnOut.className = "py-2.5 rounded-xl text-xs font-extrabold bg-rose-600 text-white shadow-xs transition cursor-pointer";
+        btnIn.className = "py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer";
+      }
+      window.toggleTxReimbursableVisibility();
+    };
+
+    window.toggleTxReimbursableVisibility = function () {
+      const cc = document.getElementById("tx-cc").value;
+      const box = document.getElementById("tx-reimb-box");
+      const show = cc === "casa" && currentModalTxType === "saida";
+      box.classList.toggle("hidden", !show);
+      if (!show) {
+        document.getElementById("tx-reimbursable").checked = false;
+      }
+    };
+
+    window.saveTransaction = function () {
+      const editingId = document.getElementById("tx-id").value;
+      const costCenter = document.getElementById("tx-cc").value;
+      const category = document.getElementById("tx-category").value;
+      const amount = window.parseMoney(document.getElementById("tx-amount").value);
+      const date = document.getElementById("tx-date").value || window.getTodayISO();
+      const description = document.getElementById("tx-desc").value.trim();
+      const reimbursable =
+        costCenter === "casa" && currentModalTxType === "saida" && document.getElementById("tx-reimbursable").checked;
+
+      if (amount <= 0) {
+        window.showToast("Informe um valor maior que zero.", "error");
+        document.getElementById("tx-amount").focus();
+        return;
+      }
+      if (!description) {
+        window.showToast("Informe uma descrição para o lançamento.", "error");
+        document.getElementById("tx-desc").focus();
+        return;
+      }
+
+      const nowISO = new Date().toISOString();
+
+      if (editingId) {
+        const idx = window.appState.transactions.findIndex((t) => t.id === editingId);
+        if (idx !== -1) {
+          const updatedTx = normalizeTx({
+            ...window.appState.transactions[idx],
+            type: currentModalTxType,
+            costCenter,
+            category,
+            amount,
+            date,
+            description,
+            reimbursable,
+            updatedAt: nowISO
+          });
+          window.appState.transactions[idx] = updatedTx;
+          cloudSaveTx(updatedTx);
+        }
+        window.showToast("Lançamento atualizado!");
+      } else {
+        const newTx = normalizeTx({
+          id: "tx_" + Date.now(),
+          type: currentModalTxType,
+          costCenter,
+          category,
+          amount,
+          date,
+          description,
+          reimbursable,
+          reimbursed: false,
+          relatedEventId: null,
+          createdAt: nowISO,
+          updatedAt: nowISO
+        });
+        window.appState.transactions.unshift(newTx);
+        cloudSaveTx(newTx);
+        window.showToast("Lançamento registrado no Fluxo de Caixa!");
+      }
+
+      window.saveLocalData();
+      window.closeTransactionModal();
+      window.renderApp();
+    };
+
+    window.deleteTransaction = function (txId) {
+      const tx = window.appState.transactions.find((t) => t.id === txId);
+      if (!tx) return;
+
+      window.openCustomConfirm({
+        title: "Excluir Lançamento do Caixa",
+        message: `Confirma a exclusão de "${tx.description}" (${window.formatBRL(tx.amount)})?`,
+        showExtraCheckbox: false,
+        onConfirm: () => {
+          window.appState.transactions = window.appState.transactions.filter((t) => t.id !== txId);
+          cloudDeleteTx(txId);
+          window.saveLocalData();
+          window.renderApp();
+          window.showToast("Lançamento excluído!");
+        }
+      });
+    };
+
+    // =========================================================
+    // ABA 4: CASA ALUGADA & CONFIGURAÇÕES FIREBASE
+    // =========================================================
+    window.renderConfig = function () {
+      const h = normalizeHouse(window.appState.house);
+      const activeEl = document.activeElement;
+
+      if (!activeEl || !activeEl.closest("#house-form")) {
+        document.getElementById("house-tenant-name").value = h.tenantName || "";
+        document.getElementById("house-tenant-phone").value = h.tenantPhone || "";
+        document.getElementById("house-due-day").value = h.dueDay || 10;
+        document.getElementById("house-rent-value").value = window.formatMoneyInput(h.rentAmount || 0);
+        document.getElementById("house-initial-balance").value = window.formatMoneyInput(h.initialBalance || 0);
+        document.getElementById("house-notes").value = h.notes || "";
+      }
+
+      const pendingReimb = window.appState.transactions.filter(
+        (t) => t.costCenter === "casa" && t.type === "saida" && t.reimbursable && !t.reimbursed
+      );
+
+      const listEl = document.getElementById("house-reimbursable-list");
+      if (pendingReimb.length === 0) {
+        listEl.innerHTML = `
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-500 text-center">
+            Nenhuma despesa reembolsável pendente para cobrar do inquilino.
+          </div>
+        `;
+      } else {
+        listEl.innerHTML = pendingReimb
+          .map(
+            (item) => `
+            <div class="bg-teal-50/70 border border-teal-200 rounded-xl p-3 flex items-center justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <p class="text-xs font-extrabold text-slate-900 truncate">${window.escapeHtml(item.description)}</p>
+                <span class="text-[11px] text-teal-800 font-bold tabular-nums">${window.formatBRL(item.amount)} • ${window.formatDateBR(item.date)}</span>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button type="button" data-action="mark-reimbursed" data-id="${item.id}" class="py-1.5 px-2.5 rounded-lg bg-emerald-600 text-white text-[11px] font-bold cursor-pointer">
+                  ✓ Quitar
+                </button>
+                <button type="button" data-action="delete-tx" data-id="${item.id}" class="py-1.5 px-2 rounded-lg bg-rose-100 text-rose-700 text-[11px] font-bold cursor-pointer">
+                  🗑️
+                </button>
+              </div>
+            </div>
+          `
+          )
+          .join("");
+      }
+    };
+
+    window.saveHouseContract = function () {
+      const tenantName = document.getElementById("house-tenant-name").value.trim();
+      const tenantPhone = document.getElementById("house-tenant-phone").value.trim();
+      const dueDay = parseInt(document.getElementById("house-due-day").value, 10) || 10;
+      const rentAmount = window.parseMoney(document.getElementById("house-rent-value").value);
+      const initialBalance = window.parseMoney(document.getElementById("house-initial-balance").value);
+      const notes = document.getElementById("house-notes").value.trim();
+
+      window.appState.house = normalizeHouse({
+        tenantName,
+        tenantPhone,
+        dueDay: Math.min(31, Math.max(1, dueDay)),
+        rentAmount,
+        initialBalance,
+        notes
+      });
+
+      window.saveLocalData();
+      cloudSaveHouseConfig(window.appState.house);
+      window.renderApp();
+      window.showToast("Configuração da Casa Alugada salva e sincronizada!");
+    };
+
+    window.markExpenseReimbursed = function (txId) {
+      const tx = window.appState.transactions.find((t) => t.id === txId);
+      if (!tx) return;
+      tx.reimbursed = true;
+      tx.updatedAt = new Date().toISOString();
+      cloudSaveTx(tx);
+      window.saveLocalData();
+      window.renderApp();
+      window.showToast("Despesa marcada como reembolsada!");
+    };
+
+    window.openReceiveRentModal = function () {
+      window.saveHouseContract();
+      const h = normalizeHouse(window.appState.house);
+      const baseRent = window.parseMoney(h.rentAmount);
+
+      if (baseRent <= 0) {
+        window.showToast("Defina um valor de Aluguel Mensal maior que zero.", "error");
+        return;
+      }
+
+      const pendingReimb = window.appState.transactions.filter(
+        (t) => t.costCenter === "casa" && t.type === "saida" && t.reimbursable && !t.reimbursed
+      );
+      const reimbTotal = pendingReimb.reduce((s, t) => s + window.parseMoney(t.amount), 0);
+      const totalToReceive = baseRent + reimbTotal;
+
+      const content = document.getElementById("modal-rent-content");
+      content.innerHTML = `
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2 text-xs">
+          <div class="flex justify-between">
+            <span class="text-slate-500">Inquilino:</span>
+            <span class="font-extrabold text-slate-900">${window.escapeHtml(h.tenantName || "Inquilino")}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Aluguel Base Mensal:</span>
+            <span class="font-bold text-slate-800 tabular-nums">${window.formatBRL(baseRent)}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Reembolsáveis Pendentes (${pendingReimb.length}):</span>
+            <span class="font-bold text-teal-700 tabular-nums">+ ${window.formatBRL(reimbTotal)}</span>
+          </div>
+          <div class="flex justify-between pt-2 border-t border-slate-200 text-sm">
+            <span class="font-extrabold text-slate-900">Total a Lançar no Caixa:</span>
+            <span class="font-extrabold text-emerald-600 tabular-nums">${window.formatBRL(totalToReceive)}</span>
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-500">Ao confirmar, a entrada será salva no Fluxo de Caixa e sincronizada com o Firebase (<code>pk_transactions</code>).</p>
+      `;
+
+      document.getElementById("modal-rent").classList.remove("hidden");
+    };
+
+    window.closeRentModal = function () {
+      document.getElementById("modal-rent").classList.add("hidden");
+    };
+
+    window.confirmReceiveRent = function () {
+      const h = normalizeHouse(window.appState.house);
+      const baseRent = window.parseMoney(h.rentAmount);
+      const pendingReimb = window.appState.transactions.filter(
+        (t) => t.costCenter === "casa" && t.type === "saida" && t.reimbursable && !t.reimbursed
+      );
+      const reimbTotal = pendingReimb.reduce((s, t) => s + window.parseMoney(t.amount), 0);
+      const total = baseRent + reimbTotal;
+
+      pendingReimb.forEach((t) => {
+        t.reimbursed = true;
+        t.updatedAt = new Date().toISOString();
+        cloudSaveTx(t);
+      });
+
+      const rentTx = normalizeTx({
+        id: "tx_" + Date.now(),
+        type: "entrada",
+        costCenter: "casa",
+        date: window.getTodayISO(),
+        amount: total,
+        category: "Aluguel da Casa",
+        description: `Aluguel recebido - ${h.tenantName || "Inquilino"}${
+          reimbTotal > 0 ? " (inclui " + window.formatBRL(reimbTotal) + " reembolso)" : ""
+        }`,
+        reimbursable: false,
+        reimbursed: false,
+        relatedEventId: null
+      });
+
+      window.appState.transactions.unshift(rentTx);
+      cloudSaveTx(rentTx);
+      window.saveLocalData();
+      window.closeRentModal();
+      window.renderApp();
+      window.showToast(`Aluguel de ${window.formatBRL(total)} lançado no Caixa!`);
+    };
+
+    window.sendRentWhatsapp = function () {
+      window.saveHouseContract();
+      const h = normalizeHouse(window.appState.house);
+      const baseRent = window.parseMoney(h.rentAmount);
+      const pendingReimb = window.appState.transactions.filter(
+        (t) => t.costCenter === "casa" && t.type === "saida" && t.reimbursable && !t.reimbursed
+      );
+      const reimbTotal = pendingReimb.reduce((s, t) => s + window.parseMoney(t.amount), 0);
+      const total = baseRent + reimbTotal;
+
+      let msg = `Olá, *${h.tenantName || "Inquilino"}*! Tudo bem?\n\nSegue o demonstrativo do aluguel da casa (vencimento dia *${
+        h.dueDay || 10
+      }*):\n🏠 *Aluguel Mensal:* ${window.formatBRL(baseRent)}\n`;
+      if (pendingReimb.length > 0) {
+        msg += `🔧 *Despesas Reembolsáveis:* ${window.formatBRL(reimbTotal)}\n`;
+        pendingReimb.forEach((item) => {
+          msg += `   • ${item.description}: ${window.formatBRL(item.amount)}\n`;
+        });
+      }
+      msg += `\n💰 *Valor Total a Pagar:* ${window.formatBRL(total)}\n\nQualquer dúvida, estou à disposição!`;
+
+      let digits = (h.tenantPhone || "").replace(/\D/g, "");
+      if (digits.length === 10 || digits.length === 11) digits = "55" + digits;
+      const url = digits
+        ? `https://wa.me/${digits}?text=${encodeURIComponent(msg)}`
+        : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+      window.open(url, "_blank");
+    };
+
+    // =========================================================
+    // MODAIS DE CONFIRMAÇÃO E DIAGNÓSTICO FIREBASE
+    // =========================================================
+    window.openCustomConfirm = function ({
+      title,
+      message,
+      showExtraCheckbox = false,
+      extraCheckboxLabel = "",
+      onConfirm
+    }) {
+      document.getElementById("confirm-title").textContent = title || "Confirmar Ação";
+      document.getElementById("confirm-message").textContent = message || "";
+
+      const extraWrap = document.getElementById("confirm-extra-option-wrap");
+      const extraCheck = document.getElementById("confirm-extra-checkbox");
+      const extraLabel = document.getElementById("confirm-extra-label");
+
+      if (showExtraCheckbox) {
+        extraWrap.classList.remove("hidden");
+        extraCheck.checked = true;
+        extraLabel.textContent = extraCheckboxLabel;
+      } else {
+        extraWrap.classList.add("hidden");
+        extraCheck.checked = false;
+      }
+
+      pendingConfirmAction = onConfirm;
+      document.getElementById("modal-confirm").classList.remove("hidden");
+    };
+
+    window.closeCustomConfirm = function () {
+      document.getElementById("modal-confirm").classList.add("hidden");
+      pendingConfirmAction = null;
+    };
+
+    window.executeCustomConfirm = function () {
+      const extraChecked = document.getElementById("confirm-extra-checkbox").checked;
+      const fn = pendingConfirmAction;
+      window.closeCustomConfirm();
+      if (typeof fn === "function") fn(extraChecked);
+    };
+
+    window.openFirebaseModal = function () {
+      updateFirebaseStatusUI(cloudStatus.state, cloudStatus.errorMessage);
+      document.getElementById("modal-firebase").classList.remove("hidden");
+    };
+
+    window.closeFirebaseModal = function () {
+      document.getElementById("modal-firebase").classList.add("hidden");
+    };
+
+    window.copyFirestoreRules = function () {
+      const rules = document.getElementById("firestore-rules-code").textContent;
+      const ta = document.createElement("textarea");
+      ta.value = rules;
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+        window.showToast("Regras do Firestore copiadas!");
+      } catch (e) {
+        window.showToast("Copie manualmente o bloco de regras.", "warning");
+      }
+      ta.remove();
+    };
+
+    window.exportBackupJSON = function () {
+      const blob = new Blob([JSON.stringify(window.appState, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `pk_festas_backup_${window.getTodayISO()}.json`;
+      a.click();
+      window.showToast("Backup JSON exportado!");
+    };
+
+    window.clearAllAppData = function () {
+      window.openCustomConfirm({
+        title: "Limpar Todos os Dados",
+        message: "Tem certeza que deseja apagar todas as festas e lançamentos locais e na nuvem (pk-festas)?",
+        showExtraCheckbox: false,
+        onConfirm: () => {
+          const oldEvs = [...window.appState.events];
+          const oldTxs = [...window.appState.transactions];
+          window.appState.events = [];
+          window.appState.transactions = [];
+          oldEvs.forEach((e) => cloudDeleteEvent(e.id));
+          oldTxs.forEach((t) => cloudDeleteTx(t.id));
+          window.saveLocalData();
+          window.renderApp();
+          window.showToast("Todos os dados foram limpos!");
+        }
+      });
+    };
+
+    window.restoreSampleData = function () {
+      window.openCustomConfirm({
+        title: "Restaurar Exemplos",
+        message: "Deseja recarregar os dados de demonstração e sincronizá-los com o projeto pk-festas?",
+        showExtraCheckbox: false,
+        onConfirm: () => {
+          const currentTab = window.appState.activeTab;
+          window.appState = window.getDefaultSampleData();
+          window.appState.activeTab = currentTab;
+          window.saveLocalData();
+          window.renderApp();
+          window.forceCloudSync();
+        }
+      });
+    };
+
+    // =========================================================
+    // LISTENERS DE FORMULÁRIOS E DELEGAÇÃO GLOBAL DE CLIQUES
+    // =========================================================
+    document.getElementById("event-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      window.saveEvent();
+    });
+
+    document.getElementById("payment-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      window.confirmPayEvent();
+    });
+
+    document.getElementById("tx-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      window.saveTransaction();
+    });
+
+    document.getElementById("house-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      window.saveHouseContract();
+    });
+
+    document.getElementById("ev-date").addEventListener("change", () => window.checkDateConflictWarning());
+    document.getElementById("ev-total").addEventListener("input", () => window.updateEventModalPreview());
+    document.getElementById("ev-paid").addEventListener("input", () => window.updateEventModalPreview());
+    document.getElementById("tx-cc").addEventListener("change", () => window.toggleTxReimbursableVisibility());
+
+    document.getElementById("caixa-filter-cc").addEventListener("change", (e) => {
+      window.appState.caixaFilterCC = e.target.value;
+      window.saveLocalData();
+      window.renderCaixa();
+    });
+
+    document.getElementById("caixa-filter-type").addEventListener("change", (e) => {
+      window.appState.caixaFilterType = e.target.value;
+      window.saveLocalData();
+      window.renderCaixa();
+    });
+
+    document.querySelectorAll(".phone-mask").forEach((inp) => {
+      inp.addEventListener("input", () => window.formatPhoneField(inp));
+    });
+
+    document.addEventListener("click", (e) => {
+      const target = e.target.closest("[data-action]");
+      if (!target) return;
+
+      const action = target.getAttribute("data-action");
+      const id = target.getAttribute("data-id");
+
+      switch (action) {
+        case "switch-tab":
+          window.switchTab(target.getAttribute("data-tab"));
+          break;
+
+        case "global-prev-month":
+          window.appState.allMonths = false;
+          window.appState.selectedMonth = window.shiftMonthISO(window.appState.selectedMonth, -1);
+          window.saveLocalData();
+          window.renderApp();
+          break;
+
+        case "global-next-month":
+          window.appState.allMonths = false;
+          window.appState.selectedMonth = window.shiftMonthISO(window.appState.selectedMonth, 1);
+          window.saveLocalData();
+          window.renderApp();
+          break;
+
+        case "global-toggle-all-months":
+          window.appState.allMonths = !window.appState.allMonths;
+          window.saveLocalData();
+          window.renderApp();
+          break;
+
+        case "open-event-modal":
+          window.openEventModal(null);
+          break;
+
+        case "close-event-modal":
+          window.closeEventModal();
+          break;
+
+        case "save-event":
+          e.preventDefault();
+          window.saveEvent();
+          break;
+
+        case "edit-event":
+          window.openEventModal(id);
+          break;
+
+        case "pay-event":
+          window.payRemainingEvent(id);
+          break;
+
+        case "close-pay-event-modal":
+          window.closePayEventModal();
+          break;
+
+        case "confirm-pay-event":
+          e.preventDefault();
+          window.confirmPayEvent();
+          break;
+
+        case "delete-event":
+          window.deleteEvent(id);
+          break;
+
+        case "whatsapp-event":
+          window.sendEventWhatsapp(id);
+          break;
+
+        case "filter-agenda":
+          window.appState.agendaFilter = target.getAttribute("data-filter");
+          window.saveLocalData();
+          window.renderAgenda();
+          break;
+
+        case "open-tx-modal":
+          window.openTransactionModal(null, false);
+          break;
+
+        case "open-reimbursable-tx-modal":
+          window.openTransactionModal(null, true);
+          break;
+
+        case "close-tx-modal":
+          window.closeTransactionModal();
+          break;
+
+        case "set-tx-type":
+          window.setModalTxType(target.getAttribute("data-type"));
+          break;
+
+        case "save-tx":
+          e.preventDefault();
+          window.saveTransaction();
+          break;
+
+        case "edit-tx":
+          window.openTransactionModal(id, false);
+          break;
+
+        case "delete-tx":
+          window.deleteTransaction(id);
+          break;
+
+        case "save-house-contract":
+          e.preventDefault();
+          window.saveHouseContract();
+          break;
+
+        case "mark-reimbursed":
+          window.markExpenseReimbursed(id);
+          break;
+
+        case "open-receive-rent-modal":
+          window.openReceiveRentModal();
+          break;
+
+        case "close-rent-modal":
+          window.closeRentModal();
+          break;
+
+        case "confirm-receive-rent":
+          window.confirmReceiveRent();
+          break;
+
+        case "whatsapp-rent-billing":
+          window.sendRentWhatsapp();
+          break;
+
+        case "open-firebase-modal":
+          window.openFirebaseModal();
+          break;
+
+        case "close-firebase-modal":
+          window.closeFirebaseModal();
+          break;
+
+        case "copy-firestore-rules":
+          window.copyFirestoreRules();
+          break;
+
+        case "force-cloud-sync":
+          window.forceCloudSync();
+          break;
+
+        case "close-confirm-modal":
+          window.closeCustomConfirm();
+          break;
+
+        case "execute-confirm":
+          window.executeCustomConfirm();
+          break;
+
+        case "export-json":
+          window.exportBackupJSON();
+          break;
+
+        case "clear-all-data":
+          window.clearAllAppData();
+          break;
+
+        case "restore-examples":
+          window.restoreSampleData();
+          break;
+      }
+    });
+
+    // Inicialização Imediata + Conexão em Tempo Real com o Firestore
+    window.loadLocalData();
+    window.switchTab(window.appState.activeTab || "resumo");
+    startRealtimeListeners();
+  </script>
+</body>
+</html>
