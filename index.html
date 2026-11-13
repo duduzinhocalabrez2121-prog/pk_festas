@@ -2523,14 +2523,14 @@ service cloud.firestore {
 
       let msg = `Olá, *${h.tenantName || "Inquilino"}*! Tudo bem?\n\nSegue o demonstrativo do aluguel da casa (vencimento dia *${
         h.dueDay || 10
-      }*):\n🏠 *Aluguel Mensal:* ${window.formatBRL(baseRent)}\n`;
+      }*):\n *Aluguel Mensal:* ${window.formatBRL(baseRent)}\n`;
       if (pendingReimb.length > 0) {
-        msg += `🔧 *Despesas Reembolsáveis:* ${window.formatBRL(reimbTotal)}\n`;
+        msg += ` *Despesas Reembolsáveis:* ${window.formatBRL(reimbTotal)}\n`;
         pendingReimb.forEach((item) => {
           msg += `   • ${item.description}: ${window.formatBRL(item.amount)}\n`;
         });
       }
-      msg += `\n💰 *Valor Total a Pagar:* ${window.formatBRL(total)}\n\nQualquer dúvida, estou à disposição!`;
+      msg += `\n *Valor Total a Pagar:* ${window.formatBRL(total)}\n\nQualquer dúvida, estou à disposição!`;
 
       let digits = (h.tenantPhone || "").replace(/\D/g, "");
       if (digits.length === 10 || digits.length === 11) digits = "55" + digits;
