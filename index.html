@@ -2086,9 +2086,9 @@ service cloud.firestore {
       const paid = window.parseMoney(ev.paidValue);
       const remaining = Math.max(0, total - paid);
 
-      let text = `Olá, *${clientName}*! Tudo bem?\n\nSegue o demonstrativo da sua reserva na *PK Festas*:\n📅 *Data:* ${window.formatDateBR(ev.date)}\n`;
-      if (desc) text += `🎉 *Evento:* ${desc}\n`;
-      text += `💰 *Valor Total:* ${window.formatBRL(total)}\n✅ *Valor Já Pago:* ${window.formatBRL(paid)}\n`;
+      let text = `Olá, *${clientName}*! Tudo bem?\n\nSegue o demonstrativo da sua reserva na *PK Festas*:\n *Data:* ${window.formatDateBR(ev.date)}\n`;
+      if (desc) text += ` *Evento:* ${desc}\n`;
+      text += ` *Valor Total:* ${window.formatBRL(total)}\n✅ *Valor Já Pago:* ${window.formatBRL(paid)}\n`;
 
       if (remaining > 0) {
         text += `⏳ *Saldo a Receber:* ${window.formatBRL(remaining)}\n\nQualquer dúvida sobre o pagamento restante ou entrega das chaves, estou à disposição!`;
